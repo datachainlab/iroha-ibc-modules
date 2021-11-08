@@ -1,0 +1,23 @@
+addAssetQuantity(string,string)	asset_id, amount
+addPeer(string,string)	address, peer_key
+addSignatory(string,string)	account_id, public_key
+appendRole(string,string)	account_id, role_name
+createAccount(string,string,string)	account_name, domain_id, public_key
+createAsset(string,string,string)	asset_name, domain_id, precision
+createDomain(string,string)	domain_id, default_role
+detachRole(string,string)	account_id, role_name
+removePeer(string)	public_key
+removeSignatory(string,string)	account_id, public_key
+setAccountDetail(string,string,string)	account_id, key, value
+setAccountQuorum(string,string)	account_id, quorum
+subtractAssetQuantity(string,string)	asset_id, amount
+transferAsset(string,string,string,string,string)	src_account_id, dest_account_id, asset_id, description, amount
+getAccount(string)	account_id
+getBlock(string)	height
+getSignatories(string)	account_id
+getAssetBalance(string,string)	account_id, asset_id
+getAccountDetail()
+getAssetInfo(string)	asset_id
+getRoles()
+getRolePermissions(string)	role_id
+getPeers()
