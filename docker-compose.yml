@@ -1,0 +1,55 @@
+version: "3.5"
+
+networks:
+  iroha-ibc:
+    name: &network iroha-ibc
+
+services:
+  iroha-node0:
+    container_name: iroha-node0
+    hostname: iroha-node0
+    image: ghcr.io/datachainlab/iroha:latest
+    environment:
+      - KEY=node0
+      - IROHA_POSTGRES_HOST=iroha-node0-postgres
+      - IROHA_POSTGRES_PORT=5432
+      - IROHA_POSTGRES_USER=postgres
+      - IROHA_POSTGRES_PASSWORD=mysecretpassword
+    working_dir: /opt/iroha_data
+    ports:
+      - "50051:50051"
+      - "55552:55552"
+      - "20000:20000"
+      - "8080:8080"
+    volumes:
+      - ./docker/config/node0:/opt/iroha_data:delegated
+      - blockstore0:/tmp/block_store:delegated
+    networks:
+      - *network
+    depends_on:
+      - iroha-node0-postgres
+
+  iroha-node0-postgres:
+    container_name: iroha-node0-postgres
+    hostname: iroha-node0-postgres
+    image: postgres:9.5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    command: -c 'max_prepared_transactions=100'
+    user: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata0:/var/lib/postgresql/data
+    networks:
+      - *network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  blockstore0:
+  pgdata0:
