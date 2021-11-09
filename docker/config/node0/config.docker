@@ -26,15 +26,19 @@
         "level": "trace"
       },
       "Irohad": {
+        "level": "warning",
         "children": {
-          "Consensus": {
-            "level": "warning"
+          "CommandService": {
+            "level": "info"
           },
-          "Ordering": {
-            "level": "warning"
+          "Simulator": {
+            "level": "info"
           },
-          "Synchronizer": {
-            "level": "warning"
+          "Storage": {
+            "level": "info"
+          },
+          "Validators": {
+            "level": "info"
           }
         }
       }
