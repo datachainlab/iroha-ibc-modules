@@ -92,11 +92,12 @@ let print_templated_function api =
   let open Core in
   let tmpl = "
     event %s(bytes result);
-    function %s(%s) external {
+    function %s(%s) internal returns (bytes memory) {
         bytes memory payload = abi.encodeWithSignature(%s);
         (bool success, bytes memory result) = serviceContractAddress.delegatecall(payload);
         require(success, \"DELEGATECALL to %s failed\");
         emit %s(result);
+        return result;
     }
 " ^^ "" in
   let evname = Printf.sprintf "%sCalled" (String.capitalize api.name) in
