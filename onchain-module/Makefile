@@ -1,6 +1,8 @@
+SOLC ?= solc
+
 .PHONY: compile
 compile:
-	solc --no-color --bin --overwrite -o build --base-path ./contracts ./contracts/Main.sol ./contracts/IrohaExperiment.sol
+	$(SOLC) --no-color --bin --overwrite -o build --base-path ./contracts ./contracts/Main.sol ./contracts/IrohaExperiment.sol
 
 .PHONY: clean
 clean:
@@ -15,7 +17,7 @@ link:
 ifndef LIBRARY_ADDRESS
 	$(error LIBRARY_ADDRESS is not specified)
 else
-	solc --no-color --link --libraries Library.sol:Library=0x$(LIBRARY_ADDRESS) build/Main.bin
+	$(SOLC) --no-color --link --libraries Library.sol:Library=0x$(LIBRARY_ADDRESS) build/Main.bin
 endif
 
 .PHONY: deploy-counter
