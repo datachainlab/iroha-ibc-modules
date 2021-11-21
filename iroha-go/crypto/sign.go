@@ -13,13 +13,13 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
 
-func SignTransaction(tx *protocol.Transaction, privKeys ...string) error {
+func SignTransaction(tx *protocol.Transaction, privKeys ...string) ([]*protocol.Signature, error) {
 	var sigs []*protocol.Signature
 
 	for _, privKey := range privKeys {
 		sig, pubKey, err := signature(tx.Payload, privKey)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		sigs = append(sigs, &protocol.Signature{
@@ -28,9 +28,7 @@ func SignTransaction(tx *protocol.Transaction, privKeys ...string) error {
 		})
 	}
 
-	tx.Signatures = sigs
-
-	return nil
+	return sigs, nil
 }
 
 func SignQuery(query *protocol.Query, privKey string) (*protocol.Signature, error) {

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
@@ -31,15 +33,18 @@ type QueryClient interface {
 var _ QueryClient = (*queryClient)(nil)
 
 type queryClient struct {
-	client protocol.QueryServiceV1Client
-
 	Timeout time.Duration
+
+	client   protocol.QueryServiceV1Client
+	callOpts []grpc.CallOption
+	// TODO logger
 }
 
-func New(client protocol.QueryServiceV1Client, timeout time.Duration) QueryClient {
+func New(conn *grpc.ClientConn, timeout time.Duration, callOpts ...grpc.CallOption) QueryClient {
 	return &queryClient{
-		client:  client,
-		Timeout: timeout,
+		Timeout:  timeout,
+		client:   protocol.NewQueryServiceV1Client(conn),
+		callOpts: callOpts,
 	}
 }
 
@@ -319,7 +324,7 @@ func (c *queryClient) SendQuery(ctx context.Context, query *protocol.Query, priv
 	)
 	defer cancel()
 
-	res, err := c.client.Find(reqCtx, query)
+	res, err := c.client.Find(reqCtx, query, c.callOpts...)
 	if errRes, ok := res.Response.(*protocol.QueryResponse_ErrorResponse); ok {
 		return nil, errors.New(errRes.ErrorResponse.String())
 	} else if err != nil {
