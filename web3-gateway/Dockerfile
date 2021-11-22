@@ -1,0 +1,22 @@
+FROM golang:1.16.10-alpine3.14 as builder
+
+WORKDIR /root
+
+COPY ./ ./
+
+WORKDIR /root/web3-gateway
+RUN go build -v -mod=readonly -o ./build/web3-gateway ./
+
+FROM alpine:3.14
+
+WORKDIR /root
+
+COPY --from=builder /root/web3-gateway/build/web3-gateway /usr/local/bin/web3-gateway
+COPY --from=builder /root/web3-gateway/example ./example
+
+RUN chmod +x /usr/local/bin/web3-gateway
+
+EXPOSE 8545
+
+ENTRYPOINT ["web3-gateway"]
+
