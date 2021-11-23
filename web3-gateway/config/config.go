@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 type Config struct {
 	Iroha   Iroha   `json:"iroha" yaml:"iroha"`
 	Gateway Gateway `json:"gateway" yaml:"gateway"`
@@ -7,17 +11,21 @@ type Config struct {
 
 type Iroha struct {
 	Api struct {
-		Host string `json:"host" yaml:"host"`
-		Port int    `json:"port" yaml:"port"`
+		Host           string        `json:"host" yaml:"host"`
+		Port           int           `json:"port" yaml:"port"`
+		CommandTimeout time.Duration `json:"commandTimeout" yaml:"commandTimeout"`
+		QueryTimeout   time.Duration `json:"queryTimeout" yaml:"queryTimeout"`
 	} `json:"api" yaml:"api"`
 
-	Postgres struct {
-		Host     string `json:"host" yaml:"host"`
-		Port     int    `json:"port" yaml:"port"`
-		User     string `json:"user" yaml:"user"`
-		Password string `json:"password" yaml:"password"`
-		Database string `json:"database" yaml:"database"`
-	} `json:"postgres" yaml:"postgres"`
+	Database struct {
+		Postgres struct {
+			Host     string `json:"host" yaml:"host"`
+			Port     int    `json:"port" yaml:"port"`
+			User     string `json:"user" yaml:"user"`
+			Password string `json:"password" yaml:"password"`
+			Database string `json:"database" yaml:"database"`
+		} `json:"postgres" yaml:"postgres"`
+	} `json:"database" yaml:"database"`
 }
 
 type Gateway struct {

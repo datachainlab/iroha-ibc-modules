@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 )
 
@@ -16,17 +18,28 @@ func Query() {
 	defer conn.Close()
 
 	queryClient := query.New(conn, time.Second*60)
-	res, err := queryClient.SendQuery(
-		context.Background(),
-		queryClient.GetAccountAsset(
-			AdminAccountId,
-			nil,
-			query.CreatorAccountId(AdminAccountId),
-		),
-		AdminPrivateKey)
+
+	q := query.GetAccountAsset(
+		AdminAccountId,
+		&pb.AssetPaginationMeta{
+			PageSize: 500,
+		},
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	sig, err := crypto.SignQuery(q, AdminPrivateKey)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(res)
+	q.Signature = sig
+
+	res, err := queryClient.SendQuery(context.Background(), q)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, asset := range res.GetAccountAssetsResponse().GetAccountAssets() {
+		fmt.Println(asset)
+	}
 }

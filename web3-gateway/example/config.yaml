@@ -2,12 +2,15 @@ iroha:
   api:
     host: localhost
     port: 50051
-  postgres:
-    host: localhost
-    port: 5432
-    user: iroha
-    password: mysecretpassword
-    database: iroha-data
+    commandTimeout: 5000
+    queryTimeout: 5000
+  database:
+    postgres:
+      host: localhost
+      port: 5432
+      user: postgres
+      password: mysecretpassword
+      database: iroha_data
 gateway:
   rpc:
     host: localhost

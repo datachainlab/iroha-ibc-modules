@@ -16,6 +16,9 @@ var cfg *config.Config
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use: "web3-gateway",
+	Short: `This is a Gateway that connects Iroha Node to PostgresSQL Server
+and provides an interface to the Ethereum JSON-RPC API.
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

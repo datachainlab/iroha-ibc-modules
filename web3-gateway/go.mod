@@ -3,11 +3,15 @@ module github.com/datachainlab/iroha-ibc-modules/web3-gateway
 go 1.16
 
 require (
+	github.com/datachainlab/iroha-ibc-modules/iroha-go v0.0.0
+	github.com/gogo/protobuf v1.3.2
+	github.com/hashicorp/go-memdb v1.3.2 // indirect
 	github.com/hyperledger/burrow v0.29.7
+	github.com/jackc/pgx/v4 v4.14.0
+	github.com/jmoiron/sqlx v1.3.4
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	google.golang.org/grpc v1.42.0 // indirect
+	google.golang.org/grpc v1.42.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 

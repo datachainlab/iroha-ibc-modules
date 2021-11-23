@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
 
 func Batch() {
@@ -20,34 +21,43 @@ func Batch() {
 
 	assetID := randStringRunes(6)
 	fmt.Println("assetID:", assetID)
-	batchTx1 := commandClient.BuildTransaction(
-		commandClient.BuildPayload(
-			[]*protocol.Command{
-				commandClient.CreateAsset(assetID, "test", 2),
+	batchTx1 := command.BuildTransaction(
+		command.BuildPayload(
+			[]*pb.Command{
+				command.CreateAsset(assetID, "test", 2),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),
 	)
 
-	batchTx2 := commandClient.BuildTransaction(
-		commandClient.BuildPayload(
-			[]*protocol.Command{
-				commandClient.AddAssetQuantity(fmt.Sprintf("%s#%s", assetID, DomainId), "100"),
+	batchTx2 := command.BuildTransaction(
+		command.BuildPayload(
+			[]*pb.Command{
+				command.AddAssetQuantity(fmt.Sprintf("%s#%s", assetID, DomainId), "100"),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),
 	)
-	txList, err := commandClient.BuildBatchTransactions(
-		[]*protocol.Transaction{batchTx1, batchTx2},
-		protocol.Transaction_Payload_BatchMeta_ATOMIC,
+	txList, err := command.BuildBatchTransactions(
+		[]*pb.Transaction{batchTx1, batchTx2},
+		pb.Transaction_Payload_BatchMeta_ATOMIC,
 	)
 	if err != nil {
 		panic(err)
 	}
+
+	for _, tx := range txList.Transactions {
+		sigs, err := crypto.SignTransaction(tx, AdminPrivateKey)
+		if err != nil {
+			panic(err)
+		}
+
+		tx.Signatures = sigs
+	}
+
 	txHashList, err := commandClient.SendBatchTransaction(
 		context.Background(),
 		txList,
-		AdminPrivateKey,
 	)
 	if err != nil {
 		panic(err)

@@ -10,19 +10,19 @@ import (
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/sha3"
 
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
 
-func SignTransaction(tx *protocol.Transaction, privKeys ...string) ([]*protocol.Signature, error) {
-	var sigs []*protocol.Signature
+func SignTransaction(tx *pb.Transaction, privKeys ...string) ([]*pb.Signature, error) {
+	var sigs []*pb.Signature
 
 	for _, privKey := range privKeys {
-		sig, pubKey, err := signature(tx.Payload, privKey)
+		sig, pubKey, err := sign(tx.Payload, privKey)
 		if err != nil {
 			return nil, err
 		}
 
-		sigs = append(sigs, &protocol.Signature{
+		sigs = append(sigs, &pb.Signature{
 			Signature: hex.EncodeToString(sig),
 			PublicKey: hex.EncodeToString(pubKey.Address()),
 		})
@@ -31,19 +31,19 @@ func SignTransaction(tx *protocol.Transaction, privKeys ...string) ([]*protocol.
 	return sigs, nil
 }
 
-func SignQuery(query *protocol.Query, privKey string) (*protocol.Signature, error) {
-	sig, pubKey, err := signature(query.Payload, privKey)
+func SignQuery(query *pb.Query, privKey string) (*pb.Signature, error) {
+	sig, pubKey, err := sign(query.Payload, privKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return &protocol.Signature{
+	return &pb.Signature{
 		Signature: hex.EncodeToString(sig),
 		PublicKey: hex.EncodeToString(pubKey.Address()),
 	}, nil
 }
 
-func signature(message proto.Message, privKeyHex string) ([]byte, crpt.PublicKey, error) {
+func sign(message proto.Message, privKeyHex string) ([]byte, crpt.PublicKey, error) {
 	c, err := ed25519.New(true, crypto.SHA3_256)
 	if err != nil {
 		return nil, nil, err

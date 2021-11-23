@@ -58,7 +58,7 @@ services:
       context: ./
     environment:
       IROHA_WEB3_IROHA_API_HOST: "iroha-node0"
-      IROHA_WEB3_IROHA_POSTGRES_HOST: "iroha-node0-postgres"
+      IROHA_WEB3_IROHA_DATABASE_POSTGRES_HOST: "iroha-node0-postgres"
       IROHA_WEB3_GATEWAY_RPC_HOST: "0.0.0.0"
     ports:
       - "8545:8545"
