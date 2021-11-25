@@ -50,6 +50,22 @@ services:
       timeout: 5s
       retries: 5
 
+  iroha-web3-gateway0:
+    container_name: iroha-web3-gateway0
+    hostname: iroha-web3-gateway0
+    build:
+      dockerfile: ./web3-gateway/Dockerfile
+      context: ./
+    environment:
+      IROHA_WEB3_IROHA_API_HOST: "iroha-node0"
+      IROHA_WEB3_IROHA_DATABASE_POSTGRES_HOST: "iroha-node0-postgres"
+      IROHA_WEB3_GATEWAY_RPC_HOST: "0.0.0.0"
+    ports:
+      - "8545:8545"
+    command: serve --config ./example/config.yaml
+    networks:
+      - *network
+
 volumes:
   blockstore0:
   pgdata0:

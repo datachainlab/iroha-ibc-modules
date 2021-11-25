@@ -93,17 +93,16 @@ func (x *commandServiceV1StatusStreamClient) Recv() (*ToriiResponse, error) {
 }
 
 // CommandServiceV1Server is the server API for CommandServiceV1 service.
-// All implementations must embed UnimplementedCommandServiceV1Server
+// All implementations should embed UnimplementedCommandServiceV1Server
 // for forward compatibility
 type CommandServiceV1Server interface {
 	Torii(context.Context, *Transaction) (*emptypb.Empty, error)
 	ListTorii(context.Context, *TxList) (*emptypb.Empty, error)
 	Status(context.Context, *TxStatusRequest) (*ToriiResponse, error)
 	StatusStream(*TxStatusRequest, CommandServiceV1_StatusStreamServer) error
-	mustEmbedUnimplementedCommandServiceV1Server()
 }
 
-// UnimplementedCommandServiceV1Server must be embedded to have forward compatible implementations.
+// UnimplementedCommandServiceV1Server should be embedded to have forward compatible implementations.
 type UnimplementedCommandServiceV1Server struct {
 }
 
@@ -119,7 +118,6 @@ func (UnimplementedCommandServiceV1Server) Status(context.Context, *TxStatusRequ
 func (UnimplementedCommandServiceV1Server) StatusStream(*TxStatusRequest, CommandServiceV1_StatusStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method StatusStream not implemented")
 }
-func (UnimplementedCommandServiceV1Server) mustEmbedUnimplementedCommandServiceV1Server() {}
 
 // UnsafeCommandServiceV1Server may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to CommandServiceV1Server will
@@ -295,15 +293,14 @@ func (x *queryServiceV1FetchCommitsClient) Recv() (*BlockQueryResponse, error) {
 }
 
 // QueryServiceV1Server is the server API for QueryServiceV1 service.
-// All implementations must embed UnimplementedQueryServiceV1Server
+// All implementations should embed UnimplementedQueryServiceV1Server
 // for forward compatibility
 type QueryServiceV1Server interface {
 	Find(context.Context, *Query) (*QueryResponse, error)
 	FetchCommits(*BlocksQuery, QueryServiceV1_FetchCommitsServer) error
-	mustEmbedUnimplementedQueryServiceV1Server()
 }
 
-// UnimplementedQueryServiceV1Server must be embedded to have forward compatible implementations.
+// UnimplementedQueryServiceV1Server should be embedded to have forward compatible implementations.
 type UnimplementedQueryServiceV1Server struct {
 }
 
@@ -313,7 +310,6 @@ func (UnimplementedQueryServiceV1Server) Find(context.Context, *Query) (*QueryRe
 func (UnimplementedQueryServiceV1Server) FetchCommits(*BlocksQuery, QueryServiceV1_FetchCommitsServer) error {
 	return status.Errorf(codes.Unimplemented, "method FetchCommits not implemented")
 }
-func (UnimplementedQueryServiceV1Server) mustEmbedUnimplementedQueryServiceV1Server() {}
 
 // UnsafeQueryServiceV1Server may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to QueryServiceV1Server will

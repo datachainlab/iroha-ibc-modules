@@ -8,7 +8,8 @@ for dir in $proto_dirs; do
   -I "./schema" \
   -I "./third_party/proto" \
   --go_out=./iroha.generated/protocol \
-  --go_opt=module=iroha.generated/protocol \
-  --go-grpc_out=. \
+  --go_opt=paths=source_relative \
+  --go-grpc_out=./iroha.generated/protocol \
+  --go-grpc_opt=require_unimplemented_servers=false,paths=source_relative \
   $(find "${dir}" -maxdepth 1 -name '*.proto')
 done

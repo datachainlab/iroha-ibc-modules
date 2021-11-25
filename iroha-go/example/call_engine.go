@@ -10,7 +10,9 @@ import (
 	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
 
-func Tx() {
+const contractInput = "60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220f9418a77c4cc64e8bdf3d840ca5c4cbec4b1f48f6004caa36249359db1348e7064736f6c634300080a0033"
+
+func CallEngine() {
 	conn, err := conn()
 	if err != nil {
 		panic(err)
@@ -19,19 +21,16 @@ func Tx() {
 
 	commandClient := command.New(conn, time.Second*60)
 
-	pubKey, privKey, err := crypto.GenerateKey(nil)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("privKey", privKey.Hex())
-	fmt.Println("pubKey", pubKey.Hex())
+	var tx *pb.Transaction
 
-	accountID := randStringRunes(6)
-	fmt.Println("accountID:", accountID)
-	tx := command.BuildTransaction(
+	tx = command.BuildTransaction(
 		command.BuildPayload(
 			[]*pb.Command{
-				command.CreateAccount(accountID, "test", pubKey.Hex()),
+				command.CallEngine(
+					AdminAccountId,
+					"",
+					contractInput,
+				),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),

@@ -7,27 +7,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 )
 
 type QueryClient interface {
-	GetAccount(accountID string, opts ...PayLoadMetaOption) *protocol.Query
-	GetSignatories(accountID string, opts ...PayLoadMetaOption) *protocol.Query
-	GetAccountTransactions(accountID string, txPaginationMeta *protocol.TxPaginationMeta, opts ...PayLoadMetaOption) *protocol.Query
-	GetAccountAssetTransactions(accountID string, assetId string, txPaginationMeta *protocol.TxPaginationMeta, opts ...PayLoadMetaOption) *protocol.Query
-	GetTransactions(txHashes []string, opts ...PayLoadMetaOption) *protocol.Query
-	GetAccountAsset(accountID string, paginationMeta *protocol.AssetPaginationMeta, opts ...PayLoadMetaOption) *protocol.Query
-	GetAccountDetail(accountID string, key string, writer string, paginationMeta *protocol.AccountDetailPaginationMeta, opts ...PayLoadMetaOption) *protocol.Query
-	GetRoles(opts ...PayLoadMetaOption) *protocol.Query
-	GetRolePermissions(roleID string, opts ...PayLoadMetaOption) *protocol.Query
-	GetAssetInfo(assetID string, opts ...PayLoadMetaOption) *protocol.Query
-	GetPendingTransactions(txPaginationMeta *protocol.TxPaginationMeta, opts ...PayLoadMetaOption) *protocol.Query
-	GetBlock(height uint64, opts ...PayLoadMetaOption) *protocol.Query
-	GetPeers(opts ...PayLoadMetaOption) *protocol.Query
-	GetEngineReceipts(txHash string, opts ...PayLoadMetaOption) *protocol.Query
-
-	SendQuery(ctx context.Context, query *protocol.Query, privKeyHex string) (*protocol.QueryResponse, error)
+	SendQuery(ctx context.Context, query *pb.Query) (*pb.QueryResponse, error)
 }
 
 var _ QueryClient = (*queryClient)(nil)
@@ -35,7 +19,7 @@ var _ QueryClient = (*queryClient)(nil)
 type queryClient struct {
 	Timeout time.Duration
 
-	client   protocol.QueryServiceV1Client
+	client   pb.QueryServiceV1Client
 	callOpts []grpc.CallOption
 	// TODO logger
 }
@@ -43,64 +27,68 @@ type queryClient struct {
 func New(conn *grpc.ClientConn, timeout time.Duration, callOpts ...grpc.CallOption) QueryClient {
 	return &queryClient{
 		Timeout:  timeout,
-		client:   protocol.NewQueryServiceV1Client(conn),
+		client:   pb.NewQueryServiceV1Client(conn),
 		callOpts: callOpts,
 	}
 }
 
-type PayLoadMetaOption func(*protocol.QueryPayloadMeta)
+type PayLoadMetaOption func(*pb.QueryPayloadMeta)
 
 func CreatorAccountId(id string) PayLoadMetaOption {
-	return func(meta *protocol.QueryPayloadMeta) {
+	return func(meta *pb.QueryPayloadMeta) {
 		meta.CreatorAccountId = id
 	}
 }
 
 func QueryCounter(counter uint64) PayLoadMetaOption {
-	return func(meta *protocol.QueryPayloadMeta) {
+	return func(meta *pb.QueryPayloadMeta) {
 		meta.QueryCounter = counter
 	}
 }
 
 func CreatedTime(t uint64) PayLoadMetaOption {
-	return func(meta *protocol.QueryPayloadMeta) {
+	return func(meta *pb.QueryPayloadMeta) {
 		meta.CreatedTime = t
 	}
 }
 
-func (c *queryClient) payloadMeta(opts ...PayLoadMetaOption) *protocol.QueryPayloadMeta {
-	meta := &protocol.QueryPayloadMeta{
-		QueryCounter: 1,
-		CreatedTime:  uint64(time.Now().UnixNano() / int64(time.Millisecond)),
+func (c *queryClient) SendQuery(ctx context.Context, query *pb.Query) (*pb.QueryResponse, error) {
+	reqCtx, cancel := context.WithTimeout(
+		ctx,
+		c.Timeout,
+	)
+	defer cancel()
+
+	res, err := c.client.Find(reqCtx, query, c.callOpts...)
+	if errRes, ok := res.Response.(*pb.QueryResponse_ErrorResponse); ok {
+		return nil, errors.New(errRes.ErrorResponse.String())
+	} else if err != nil {
+		return nil, err
 	}
 
-	for _, opt := range opts {
-		opt(meta)
-	}
-
-	return meta
+	return res, nil
 }
 
-func (c *queryClient) GetAccount(accountID string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetAccount(accountID string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAccount{
-				GetAccount: &protocol.GetAccount{AccountId: accountID},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAccount{
+				GetAccount: &pb.GetAccount{AccountId: accountID},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetSignatories(accountID string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetSignatories(accountID string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetSignatories{
-				GetSignatories: &protocol.GetSignatories{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetSignatories{
+				GetSignatories: &pb.GetSignatories{
 					AccountId: accountID,
 				},
 			},
@@ -109,17 +97,17 @@ func (c *queryClient) GetSignatories(accountID string, opts ...PayLoadMetaOption
 	}
 }
 
-func (c *queryClient) GetAccountTransactions(
+func GetAccountTransactions(
 	accountID string,
-	txPaginationMeta *protocol.TxPaginationMeta,
+	txPaginationMeta *pb.TxPaginationMeta,
 	opts ...PayLoadMetaOption,
-) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAccountTransactions{
-				GetAccountTransactions: &protocol.GetAccountTransactions{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAccountTransactions{
+				GetAccountTransactions: &pb.GetAccountTransactions{
 					AccountId:      accountID,
 					PaginationMeta: txPaginationMeta,
 				},
@@ -129,18 +117,18 @@ func (c *queryClient) GetAccountTransactions(
 	}
 }
 
-func (c *queryClient) GetAccountAssetTransactions(
+func GetAccountAssetTransactions(
 	accountID string,
 	assetId string,
-	txPaginationMeta *protocol.TxPaginationMeta,
+	txPaginationMeta *pb.TxPaginationMeta,
 	opts ...PayLoadMetaOption,
-) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAccountAssetTransactions{
-				GetAccountAssetTransactions: &protocol.GetAccountAssetTransactions{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAccountAssetTransactions{
+				GetAccountAssetTransactions: &pb.GetAccountAssetTransactions{
 					AccountId:      accountID,
 					AssetId:        assetId,
 					PaginationMeta: txPaginationMeta,
@@ -151,13 +139,13 @@ func (c *queryClient) GetAccountAssetTransactions(
 	}
 }
 
-func (c *queryClient) GetTransactions(txHashes []string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetTransactions(txHashes []string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetTransactions{
-				GetTransactions: &protocol.GetTransactions{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetTransactions{
+				GetTransactions: &pb.GetTransactions{
 					TxHashes: txHashes,
 				},
 			},
@@ -166,17 +154,17 @@ func (c *queryClient) GetTransactions(txHashes []string, opts ...PayLoadMetaOpti
 	}
 }
 
-func (c *queryClient) GetAccountAsset(
+func GetAccountAsset(
 	accountID string,
-	paginationMeta *protocol.AssetPaginationMeta,
+	paginationMeta *pb.AssetPaginationMeta,
 	opts ...PayLoadMetaOption,
-) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAccountAssets{
-				GetAccountAssets: &protocol.GetAccountAssets{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAccountAssets{
+				GetAccountAssets: &pb.GetAccountAssets{
 					AccountId:      accountID,
 					PaginationMeta: paginationMeta,
 				},
@@ -186,24 +174,24 @@ func (c *queryClient) GetAccountAsset(
 	}
 }
 
-func (c *queryClient) GetAccountDetail(
+func GetAccountDetail(
 	accountID string,
 	key string,
 	writer string,
-	paginationMeta *protocol.AccountDetailPaginationMeta,
+	paginationMeta *pb.AccountDetailPaginationMeta,
 	opts ...PayLoadMetaOption,
-) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAccountDetail{
-				GetAccountDetail: &protocol.GetAccountDetail{
-					OptAccountId: &protocol.GetAccountDetail_AccountId{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAccountDetail{
+				GetAccountDetail: &pb.GetAccountDetail{
+					OptAccountId: &pb.GetAccountDetail_AccountId{
 						AccountId: accountID,
 					},
-					OptKey:         &protocol.GetAccountDetail_Key{Key: key},
-					OptWriter:      &protocol.GetAccountDetail_Writer{Writer: writer},
+					OptKey:         &pb.GetAccountDetail_Key{Key: key},
+					OptWriter:      &pb.GetAccountDetail_Writer{Writer: writer},
 					PaginationMeta: paginationMeta,
 				},
 			},
@@ -212,55 +200,55 @@ func (c *queryClient) GetAccountDetail(
 	}
 }
 
-func (c *queryClient) GetRoles(opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetRoles(opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetRoles{
-				GetRoles: &protocol.GetRoles{},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetRoles{
+				GetRoles: &pb.GetRoles{},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetRolePermissions(roleID string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetRolePermissions(roleID string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetRolePermissions{
-				GetRolePermissions: &protocol.GetRolePermissions{RoleId: roleID},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetRolePermissions{
+				GetRolePermissions: &pb.GetRolePermissions{RoleId: roleID},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetAssetInfo(assetID string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetAssetInfo(assetID string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetAssetInfo{
-				GetAssetInfo: &protocol.GetAssetInfo{AssetId: assetID},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetAssetInfo{
+				GetAssetInfo: &pb.GetAssetInfo{AssetId: assetID},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetPendingTransactions(
-	txPaginationMeta *protocol.TxPaginationMeta,
+func GetPendingTransactions(
+	txPaginationMeta *pb.TxPaginationMeta,
 	opts ...PayLoadMetaOption,
-) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetPendingTransactions{
-				GetPendingTransactions: &protocol.GetPendingTransactions{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetPendingTransactions{
+				GetPendingTransactions: &pb.GetPendingTransactions{
 					PaginationMeta: txPaginationMeta,
 				},
 			},
@@ -269,39 +257,39 @@ func (c *queryClient) GetPendingTransactions(
 	}
 }
 
-func (c *queryClient) GetBlock(height uint64, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetBlock(height uint64, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetBlock{
-				GetBlock: &protocol.GetBlock{Height: height},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetBlock{
+				GetBlock: &pb.GetBlock{Height: height},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetPeers(opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetPeers(opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetPeers{
-				GetPeers: &protocol.GetPeers{},
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetPeers{
+				GetPeers: &pb.GetPeers{},
 			},
 			Meta: meta,
 		},
 	}
 }
 
-func (c *queryClient) GetEngineReceipts(txHash string, opts ...PayLoadMetaOption) *protocol.Query {
-	meta := c.payloadMeta(opts...)
+func GetEngineReceipts(txHash string, opts ...PayLoadMetaOption) *pb.Query {
+	meta := payloadMeta(opts...)
 
-	return &protocol.Query{
-		Payload: &protocol.Query_Payload{
-			Query: &protocol.Query_Payload_GetEngineReceipts{
-				GetEngineReceipts: &protocol.GetEngineReceipts{
+	return &pb.Query{
+		Payload: &pb.Query_Payload{
+			Query: &pb.Query_Payload_GetEngineReceipts{
+				GetEngineReceipts: &pb.GetEngineReceipts{
 					TxHash: txHash,
 				},
 			},
@@ -310,26 +298,15 @@ func (c *queryClient) GetEngineReceipts(txHash string, opts ...PayLoadMetaOption
 	}
 }
 
-func (c *queryClient) SendQuery(ctx context.Context, query *protocol.Query, privKeyHex string) (*protocol.QueryResponse, error) {
-	sig, err := crypto.SignQuery(query, privKeyHex)
-	if err != nil {
-		return nil, err
+func payloadMeta(opts ...PayLoadMetaOption) *pb.QueryPayloadMeta {
+	meta := &pb.QueryPayloadMeta{
+		QueryCounter: 1,
+		CreatedTime:  uint64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}
 
-	query.Signature = sig
-
-	reqCtx, cancel := context.WithTimeout(
-		ctx,
-		c.Timeout,
-	)
-	defer cancel()
-
-	res, err := c.client.Find(reqCtx, query, c.callOpts...)
-	if errRes, ok := res.Response.(*protocol.QueryResponse_ErrorResponse); ok {
-		return nil, errors.New(errRes.ErrorResponse.String())
-	} else if err != nil {
-		return nil, err
+	for _, opt := range opts {
+		opt(meta)
 	}
 
-	return res, nil
+	return meta
 }

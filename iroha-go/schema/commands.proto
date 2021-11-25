@@ -120,9 +120,16 @@ message CallEngine {
     }
     EngineType type = 1;
     string caller = 2;
-    oneof opt_callee {
-      string callee = 3;  // hex string
-    }
+//////////////////////////////////////////////////////////////////////////////
+//////  pay special attention to this column.                           //////
+//////  From the original protobuf definition,                          //////
+//////  the wrong Hash message is created when signing the Transaction. //////
+//////  So we have removed the oneof attribute for this column.         //////
+//////////////////////////////////////////////////////////////////////////////
+//    oneof opt_callee {
+//      string callee = 3;  // hex string
+//    }
+    string callee = 3;  // hex string
     string input = 4;  // hex string
 }
 
