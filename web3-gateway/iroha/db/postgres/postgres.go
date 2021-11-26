@@ -57,6 +57,9 @@ func (c *postgresClient) GetBurrowAccountDataByAddress(address string) (*entity.
 	query := "SELECT address, data FROM burrow_account_data WHERE address=$1"
 
 	if err := c.db.Get(&account, query, address); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -87,6 +90,9 @@ WHERE ec.tx_hash = $1
 `
 
 	if err := c.db.Get(&tx, query, txHash); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -118,8 +124,59 @@ WHERE ec.tx_hash = $1
 `
 
 	if err := c.db.Get(&receipt, query, txHash); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	return &receipt, nil
+}
+
+func (c *postgresClient) GeEngineReceiptLogsByTxHash(txHash string) ([]*entity.EngineReceiptLog, error) {
+	txHash = strings.ToLower(x.RemovePrefix(txHash))
+
+	var logs []*entity.EngineReceiptLog
+
+	queryLogs := `
+SELECT
+	btl.log_idx,
+	btl.call_id,
+	btl.address,
+	btl.data,
+	tp.creator_id,
+	tp.height,
+	tp.index,
+	tp.hash as tx_hash
+FROM burrow_tx_logs AS btl
+INNER JOIN engine_calls AS ec
+ON btl.call_id = ec.call_id
+INNER JOIN tx_positions AS tp
+ON tp.hash = ec.tx_hash
+WHERE ec.tx_hash = $1
+`
+
+	if err := c.db.Select(&logs, queryLogs, txHash); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	queryTopics := `
+SELECT
+	btlt.topic
+FROM burrow_tx_logs_topics AS btlt
+WHERE btlt.log_idx = $1
+`
+
+	for _, log := range logs {
+		var topics []entity.EngineReceiptLogTopic
+		if err := c.db.Select(&topics, queryTopics, log.LogIdx); err != nil {
+			return nil, err
+		}
+		log.Topics = topics
+	}
+
+	return logs, nil
 }

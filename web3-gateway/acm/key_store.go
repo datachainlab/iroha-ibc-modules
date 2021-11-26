@@ -2,6 +2,7 @@ package acm
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
 	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
@@ -17,6 +18,7 @@ var _ KeyStore = (*keyStore)(nil)
 
 type keyStore struct {
 	store map[string]string
+	lock  sync.RWMutex
 }
 
 func NewKeyStore() KeyStore {
@@ -29,6 +31,9 @@ var ErrNotExistKey = errors.New("key doesn't exist")
 var ErrAlreadyExistKey = errors.New("the key already exists")
 
 func (k keyStore) Set(accountID string, privKey string) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
 	if _, ok := k.store[accountID]; ok {
 		return ErrAlreadyExistKey
 	} else {
@@ -38,8 +43,10 @@ func (k keyStore) Set(accountID string, privKey string) error {
 }
 
 func (k keyStore) SignTransaction(tx *pb.Transaction, accountIDs ...string) ([]*pb.Signature, error) {
-	var privKeys []string
+	k.lock.RLock()
+	defer k.lock.RUnlock()
 
+	privKeys := make([]string, 0, len(accountIDs))
 	for _, accountID := range accountIDs {
 		if privKey, ok := k.store[accountID]; !ok {
 			return nil, ErrNotExistKey
@@ -59,6 +66,9 @@ func (k keyStore) SignTransaction(tx *pb.Transaction, accountIDs ...string) ([]*
 }
 
 func (k keyStore) SignQuery(query *pb.Query, accountID string) (*pb.Signature, error) {
+	k.lock.RLock()
+	defer k.lock.RUnlock()
+
 	privKey, ok := k.store[accountID]
 	if !ok {
 		return nil, ErrNotExistKey

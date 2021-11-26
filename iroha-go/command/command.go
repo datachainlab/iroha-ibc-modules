@@ -90,7 +90,7 @@ func (c *commandClient) SendBatchTransaction(ctx context.Context, txList *pb.TxL
 		return nil, err
 	}
 
-	var txHashList []string
+	txHashList := make([]string, 0, len(txList.Transactions))
 	for _, tx := range txList.Transactions {
 		bz, err := crypto.Hash(tx.Payload)
 		if err != nil {

@@ -93,10 +93,7 @@ func NewAccount(irohaAccountID string, privKey string) (*Account, error) {
 		return nil, err
 	}
 
-	irohaAddressHex, err := util.IrohaAccountIDToAddressHex(irohaAccountID)
-	if err != nil {
-		return nil, err
-	}
+	irohaAddressHex := util.IrohaAccountIDToAddressHex(irohaAccountID)
 
 	irohaAddress, err := crypto.AddressFromHexString(irohaAddressHex)
 	if err != nil {

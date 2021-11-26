@@ -19,6 +19,7 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
 
@@ -193,6 +194,8 @@ func (e EthService) EthGetCode(params *web3.EthGetCodeParams) (*web3.EthGetCodeR
 	data, err := e.irohaClient.GetBurrowAccountDataByAddress(params.Address)
 	if err != nil {
 		return nil, web3.ErrServer
+	} else if data == nil {
+		return nil, nil
 	}
 
 	bz, err := hex.DecodeString(data.Data)
@@ -252,6 +255,8 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 	eTx, err := e.irohaClient.GetEngineTransaction(params.TransactionHash)
 	if err != nil {
 		return nil, web3.ErrServer
+	} else if eTx == nil {
+		return nil, nil
 	}
 
 	acc, err := e.accountState.GetByIrohaAccountID(eTx.CreatorID)
@@ -297,22 +302,30 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 	eReceipt, err := e.irohaClient.GetEngineReceipt(params.TransactionHash)
 	if err != nil {
 		return nil, web3.ErrServer
+	} else if eReceipt == nil {
+		return nil, nil
 	}
 
-	acc, err := e.accountState.GetByIrohaAccountID(eReceipt.CreatorID)
+	eLogs, err := e.irohaClient.GeEngineReceiptLogsByTxHash(eReceipt.TxHash)
+	if err != nil {
+		return nil, web3.ErrServer
+	}
+
+	from := util.IrohaAccountIDToAddressHex(eReceipt.CreatorID)
 	if err != nil {
 		return nil, web3.ErrServer
 	}
 
 	receipt := web3.Receipt{
-		From:              util.ToEthereumHexString(acc.IrohaAddress),
+		From:              util.ToEthereumHexString(from),
 		TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 		TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 		BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
 		BlockHash:         hexZero,
 		GasUsed:           hexZero,
 		CumulativeGasUsed: hexZero,
-		Logs:              nil,
+		Logs:              irohaToEthereumTxReceiptLogs(eLogs),
+		LogsBloom:         "",
 	}
 
 	if eReceipt.Status {
@@ -399,7 +412,7 @@ func (e EthService) EthAccounts() (*web3.EthAccountsResult, error) {
 		return nil, web3.ErrServer
 	}
 
-	var addresses []string
+	addresses := make([]string, 0, len(accounts))
 
 	for _, acc := range accounts {
 		addresses = append(addresses, util.ToEthereumHexString(acc.GetIrohaAddress()))
@@ -470,4 +483,32 @@ func (e EthService) EthSyncing() (*web3.EthSyncingResult, error) {
 
 func (e EthService) EthUninstallFilter(params *web3.EthUninstallFilterParams) (*web3.EthUninstallFilterResult, error) {
 	return nil, errors.New("implement me")
+}
+
+func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []web3.Logs {
+	ethLogs := make([]web3.Logs, 0, len(logs))
+
+	for i, log := range logs {
+		ethLog := web3.Logs{
+			LogIndex:         util.ToEthereumHexString(fmt.Sprintf("%x", i)),
+			TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
+			TransactionHash:  util.ToEthereumHexString(log.TxHash),
+			Address:          util.ToEthereumHexString(log.Address),
+			BlockHash:        hexZero,
+			BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
+			Data:             util.ToEthereumHexString(log.Data),
+			Topics:           make([]web3.Topics, 0, len(log.Topics)),
+		}
+
+		for _, topic := range log.Topics {
+			ethTopic := web3.Topics{
+				DataWord: util.ToEthereumHexString(topic.Topic),
+			}
+			ethLog.Topics = append(ethLog.Topics, ethTopic)
+		}
+
+		ethLogs = append(ethLogs, ethLog)
+	}
+
+	return ethLogs
 }
