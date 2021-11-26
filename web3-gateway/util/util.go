@@ -8,10 +8,10 @@ import (
 	x "github.com/hyperledger/burrow/encoding/hex"
 )
 
-func IrohaAccountIDToAddressHex(accountID string) (string, error) {
+func IrohaAccountIDToAddressHex(accountID string) string {
 	addr := crypto.Keccak256([]byte(accountID))
 
-	return hex.EncodeToString(addr[12:32]), nil
+	return hex.EncodeToString(addr[12:32])
 }
 
 func HexToBurrowAddress(h string) (crypto.Address, error) {
