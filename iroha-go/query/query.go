@@ -175,9 +175,9 @@ func GetAccountAsset(
 }
 
 func GetAccountDetail(
-	accountID string,
-	key string,
-	writer string,
+	accountID *pb.GetAccountDetail_AccountId,
+	key *pb.GetAccountDetail_Key,
+	writer *pb.GetAccountDetail_Writer,
 	paginationMeta *pb.AccountDetailPaginationMeta,
 	opts ...PayLoadMetaOption,
 ) *pb.Query {
@@ -187,11 +187,9 @@ func GetAccountDetail(
 		Payload: &pb.Query_Payload{
 			Query: &pb.Query_Payload_GetAccountDetail{
 				GetAccountDetail: &pb.GetAccountDetail{
-					OptAccountId: &pb.GetAccountDetail_AccountId{
-						AccountId: accountID,
-					},
-					OptKey:         &pb.GetAccountDetail_Key{Key: key},
-					OptWriter:      &pb.GetAccountDetail_Writer{Writer: writer},
+					OptAccountId:   accountID,
+					OptKey:         key,
+					OptWriter:      writer,
 					PaginationMeta: paginationMeta,
 				},
 			},

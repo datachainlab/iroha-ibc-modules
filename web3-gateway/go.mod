@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/datachainlab/iroha-ibc-modules/iroha-go v0.0.0
-	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/go-memdb v1.3.2 // indirect
+	github.com/golang/protobuf v1.5.2
+	github.com/hashicorp/go-memdb v1.3.2
 	github.com/hyperledger/burrow v0.29.7
 	github.com/jackc/pgx/v4 v4.14.0
 	github.com/jmoiron/sqlx v1.3.4

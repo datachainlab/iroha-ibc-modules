@@ -32,4 +32,11 @@ contract IrohaExperiment {
         IrohaApi.getAssetBalance(NEW_ACCOUNT_FULL, NEW_ASSET_FULL);
     }
 
+    function setAccountDetail(string calldata _account_id, string calldata _key, string calldata _value) external {
+        IrohaApi.setAccountDetail(_account_id, _key, _value);
+    }
+
+    function getAccountDetail() external returns (bytes memory) {
+        return IrohaApi.getAccountDetail();
+    }
 }

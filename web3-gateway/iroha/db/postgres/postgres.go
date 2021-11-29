@@ -66,6 +66,24 @@ func (c *postgresClient) GetBurrowAccountDataByAddress(address string) (*entity.
 	return &account, nil
 }
 
+func (c *postgresClient) GetBurrowAccountKeyValueByAddressAndKey(address, key string) (*entity.BurrowAccountKeyValue, error) {
+	address = strings.ToLower(x.RemovePrefix(address))
+	key = strings.ToLower(x.RemovePrefix(key))
+
+	var kv entity.BurrowAccountKeyValue
+
+	query := "SELECT address, key, value FROM burrow_account_key_value WHERE address=$1 AND key=$2"
+
+	if err := c.db.Get(&kv, query, address, key); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &kv, nil
+}
+
 func (c *postgresClient) GetEngineTransaction(txHash string) (*entity.EngineTransaction, error) {
 	txHash = strings.ToLower(x.RemovePrefix(txHash))
 

@@ -10,6 +10,7 @@ import (
 type DBClient interface {
 	GetLatestHeight() (uint64, error)
 	GetBurrowAccountDataByAddress(address string) (*entity.BurrowAccountData, error)
+	GetBurrowAccountKeyValueByAddressAndKey(address, key string) (*entity.BurrowAccountKeyValue, error)
 	GetEngineTransaction(txHash string) (*entity.EngineTransaction, error)
 	GetEngineReceipt(txHash string) (*entity.EngineReceipt, error)
 	GeEngineReceiptLogsByTxHash(txHash string) ([]*entity.EngineReceiptLog, error)

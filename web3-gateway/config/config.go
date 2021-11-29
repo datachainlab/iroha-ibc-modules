@@ -5,8 +5,10 @@ import (
 )
 
 type Config struct {
-	Iroha   Iroha   `json:"iroha" yaml:"iroha"`
-	Gateway Gateway `json:"gateway" yaml:"gateway"`
+	Iroha    Iroha          `json:"iroha" yaml:"iroha"`
+	Gateway  Gateway        `json:"gateway" yaml:"gateway"`
+	Accounts []IrohaAccount `json:"accounts" yaml:"accounts"`
+	EVM      EVM            `json:"evm" yaml:"evm"`
 }
 
 type Iroha struct {
@@ -33,10 +35,13 @@ type Gateway struct {
 		Host string `json:"host" yaml:"host"`
 		Port int    `json:"port" yaml:"port"`
 	} `json:"rpc" yaml:"rpc"`
-	Accounts []IrohaAccount `json:"accounts" yaml:"accounts"`
 }
 
 type IrohaAccount struct {
 	ID         string `json:"id" yaml:"id"`
 	PrivateKey string `json:"privateKey" yaml:"privateKey"`
+}
+
+type EVM struct {
+	Querier string `json:"querier" yaml:"querier"`
 }
