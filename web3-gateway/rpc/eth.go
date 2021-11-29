@@ -8,29 +8,27 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/gogo/protobuf/proto"
 	burrow "github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/crypto"
 	x "github.com/hyperledger/burrow/encoding/hex"
+	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/rpc/web3"
 
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
 	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/evm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
 
 const (
-	chainID      = math.MaxInt32
-	networkID    = math.MaxInt32
-	maxGasLimit  = 2<<52 - 1
-	hexZero      = "0x0"
-	hexZeroNonce = "0x0000000000000000"
-	hexOne       = "0x1"
-	pending      = "null"
+	chainID   = math.MaxInt32
+	networkID = math.MaxInt32
+	hexZero   = "0x0"
+	hexOne    = "0x1"
 )
 
 var _ web3.Service = (*EthService)(nil)
@@ -39,17 +37,23 @@ type EthService struct {
 	accountState *acm.AccountState
 	keyStore     acm.KeyStore
 	irohaClient  *iroha.Client
+	logger       *logging.Logger
+	querier      string
 }
 
 func NewEthService(
 	accountState *acm.AccountState,
 	keyStore acm.KeyStore,
 	irohaClient *iroha.Client,
+	logger *logging.Logger,
+	querier string,
 ) *EthService {
 	return &EthService{
 		accountState: accountState,
 		keyStore:     keyStore,
 		irohaClient:  irohaClient,
+		logger:       logger,
+		querier:      querier,
 	}
 }
 
@@ -93,7 +97,23 @@ func (e EthService) EthBlockNumber() (*web3.EthBlockNumberResult, error) {
 }
 
 func (e EthService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, error) {
-	return nil, errors.New("implement me")
+	input, err := x.DecodeToBytes(params.Transaction.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := evm.CallSim(
+		e.irohaClient.DBClient, e.logger,
+		params.From, params.To, params.Hash,
+		input,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &web3.EthCallResult{
+		ReturnValue: x.EncodeBytes(res),
+	}, nil
 }
 
 func (e EthService) EthChainId() (*web3.EthChainIdResult, error) {
@@ -124,7 +144,7 @@ func (e EthService) EthGetBalance(*web3.EthGetBalanceParams) (*web3.EthGetBalanc
 	}, nil
 }
 
-func (e EthService) EthGetBlockByHash(params *web3.EthGetBlockByHashParams) (*web3.EthGetBlockByHashResult, error) {
+func (e EthService) EthGetBlockByHash(*web3.EthGetBlockByHashParams) (*web3.EthGetBlockByHashResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -143,33 +163,32 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	if params.BlockNumber == "latest" || params.BlockNumber == "pending" {
 		height, err = e.irohaClient.GetLatestHeight()
 		if err != nil {
-			return nil, web3.ErrServer
+			return nil, err
 		}
 	} else {
 		height, err = strconv.ParseUint(x.RemovePrefix(params.BlockNumber), 16, 64)
 		if err != nil {
-			return nil, web3.ErrServer
+			return nil, err
 		}
 	}
 
-	acc, err := e.accountState.GetDefaultAccount()
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	q := query.GetBlock(
 		height,
-		query.CreatorAccountId(acc.IrohaAccountID),
+		query.CreatorAccountId(e.querier),
 	)
 
-	_, err = e.keyStore.SignQuery(q, acc.IrohaAccountID)
+	_, err = e.keyStore.SignQuery(q, e.querier)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	res, err := e.irohaClient.SendQuery(context.Background(), q)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	block := res.GetBlockResponse().GetBlock().GetBlockV1()
@@ -182,30 +201,30 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	}, nil
 }
 
-func (e EthService) EthGetBlockTransactionCountByHash(params *web3.EthGetBlockTransactionCountByHashParams) (*web3.EthGetBlockTransactionCountByHashResult, error) {
+func (e EthService) EthGetBlockTransactionCountByHash(*web3.EthGetBlockTransactionCountByHashParams) (*web3.EthGetBlockTransactionCountByHashResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetBlockTransactionCountByNumber(params *web3.EthGetBlockTransactionCountByNumberParams) (*web3.EthGetBlockTransactionCountByNumberResult, error) {
+func (e EthService) EthGetBlockTransactionCountByNumber(*web3.EthGetBlockTransactionCountByNumberParams) (*web3.EthGetBlockTransactionCountByNumberResult, error) {
 	return nil, errors.New("implement me")
 }
 
 func (e EthService) EthGetCode(params *web3.EthGetCodeParams) (*web3.EthGetCodeResult, error) {
 	data, err := e.irohaClient.GetBurrowAccountDataByAddress(params.Address)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	} else if data == nil {
 		return nil, nil
 	}
 
 	bz, err := hex.DecodeString(data.Data)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
-	var irohaAccount burrow.Account
-	if err = proto.Unmarshal(bz, &irohaAccount); err != nil {
-		return nil, web3.ErrServer
+	irohaAccount := &burrow.Account{}
+	if err = irohaAccount.Unmarshal(bz); err != nil {
+		return nil, err
 	}
 
 	bytes := util.ToEthereumHexString(irohaAccount.EVMCode.String())
@@ -215,39 +234,39 @@ func (e EthService) EthGetCode(params *web3.EthGetCodeParams) (*web3.EthGetCodeR
 	}, nil
 }
 
-func (e EthService) EthGetFilterChanges(params *web3.EthGetFilterChangesParams) (*web3.EthGetFilterChangesResult, error) {
+func (e EthService) EthGetFilterChanges(*web3.EthGetFilterChangesParams) (*web3.EthGetFilterChangesResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetFilterLogs(params *web3.EthGetFilterLogsParams) (*web3.EthGetFilterLogsResult, error) {
+func (e EthService) EthGetFilterLogs(*web3.EthGetFilterLogsParams) (*web3.EthGetFilterLogsResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetRawTransactionByHash(params *web3.EthGetRawTransactionByHashParams) (*web3.EthGetRawTransactionByHashResult, error) {
+func (e EthService) EthGetRawTransactionByHash(*web3.EthGetRawTransactionByHashParams) (*web3.EthGetRawTransactionByHashResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetRawTransactionByBlockHashAndIndex(params *web3.EthGetRawTransactionByBlockHashAndIndexParams) (*web3.EthGetRawTransactionByBlockHashAndIndexResult, error) {
+func (e EthService) EthGetRawTransactionByBlockHashAndIndex(*web3.EthGetRawTransactionByBlockHashAndIndexParams) (*web3.EthGetRawTransactionByBlockHashAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetRawTransactionByBlockNumberAndIndex(params *web3.EthGetRawTransactionByBlockNumberAndIndexParams) (*web3.EthGetRawTransactionByBlockNumberAndIndexResult, error) {
+func (e EthService) EthGetRawTransactionByBlockNumberAndIndex(*web3.EthGetRawTransactionByBlockNumberAndIndexParams) (*web3.EthGetRawTransactionByBlockNumberAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsResult, error) {
+func (e EthService) EthGetLogs(*web3.EthGetLogsParams) (*web3.EthGetLogsResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetStorageAt(params *web3.EthGetStorageAtParams) (*web3.EthGetStorageAtResult, error) {
+func (e EthService) EthGetStorageAt(*web3.EthGetStorageAtParams) (*web3.EthGetStorageAtResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetTransactionByBlockHashAndIndex(params *web3.EthGetTransactionByBlockHashAndIndexParams) (*web3.EthGetTransactionByBlockHashAndIndexResult, error) {
+func (e EthService) EthGetTransactionByBlockHashAndIndex(*web3.EthGetTransactionByBlockHashAndIndexParams) (*web3.EthGetTransactionByBlockHashAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetTransactionByBlockNumberAndIndex(params *web3.EthGetTransactionByBlockNumberAndIndexParams) (*web3.EthGetTransactionByBlockNumberAndIndexResult, error) {
+func (e EthService) EthGetTransactionByBlockNumberAndIndex(*web3.EthGetTransactionByBlockNumberAndIndexParams) (*web3.EthGetTransactionByBlockNumberAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -261,7 +280,7 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 
 	acc, err := e.accountState.GetByIrohaAccountID(eTx.CreatorID)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	tx := web3.Transaction{
@@ -292,7 +311,7 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 	}, nil
 }
 
-func (e EthService) EthGetTransactionCount(params *web3.EthGetTransactionCountParams) (*web3.EthGetTransactionCountResult, error) {
+func (e EthService) EthGetTransactionCount(*web3.EthGetTransactionCountParams) (*web3.EthGetTransactionCountResult, error) {
 	return &web3.EthGetTransactionCountResult{
 		NonceOrNull: hexZero,
 	}, nil
@@ -301,19 +320,19 @@ func (e EthService) EthGetTransactionCount(params *web3.EthGetTransactionCountPa
 func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionReceiptParams) (*web3.EthGetTransactionReceiptResult, error) {
 	eReceipt, err := e.irohaClient.GetEngineReceipt(params.TransactionHash)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	} else if eReceipt == nil {
 		return nil, nil
 	}
 
 	eLogs, err := e.irohaClient.GeEngineReceiptLogsByTxHash(eReceipt.TxHash)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	from := util.IrohaAccountIDToAddressHex(eReceipt.CreatorID)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	receipt := web3.Receipt{
@@ -347,23 +366,23 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 	}, nil
 }
 
-func (e EthService) EthGetUncleByBlockHashAndIndex(params *web3.EthGetUncleByBlockHashAndIndexParams) (*web3.EthGetUncleByBlockHashAndIndexResult, error) {
+func (e EthService) EthGetUncleByBlockHashAndIndex(*web3.EthGetUncleByBlockHashAndIndexParams) (*web3.EthGetUncleByBlockHashAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetUncleByBlockNumberAndIndex(params *web3.EthGetUncleByBlockNumberAndIndexParams) (*web3.EthGetUncleByBlockNumberAndIndexResult, error) {
+func (e EthService) EthGetUncleByBlockNumberAndIndex(*web3.EthGetUncleByBlockNumberAndIndexParams) (*web3.EthGetUncleByBlockNumberAndIndexResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetUncleCountByBlockHash(params *web3.EthGetUncleCountByBlockHashParams) (*web3.EthGetUncleCountByBlockHashResult, error) {
+func (e EthService) EthGetUncleCountByBlockHash(*web3.EthGetUncleCountByBlockHashParams) (*web3.EthGetUncleCountByBlockHashResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetUncleCountByBlockNumber(params *web3.EthGetUncleCountByBlockNumberParams) (*web3.EthGetUncleCountByBlockNumberResult, error) {
+func (e EthService) EthGetUncleCountByBlockNumber(*web3.EthGetUncleCountByBlockNumberParams) (*web3.EthGetUncleCountByBlockNumberResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetProof(params *web3.EthGetProofParams) (*web3.EthGetProofResult, error) {
+func (e EthService) EthGetProof(*web3.EthGetProofParams) (*web3.EthGetProofResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -383,7 +402,7 @@ func (e EthService) EthNewBlockFilter() (*web3.EthNewBlockFilterResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthNewFilter(params *web3.EthNewFilterParams) (*web3.EthNewFilterResult, error) {
+func (e EthService) EthNewFilter(*web3.EthNewFilterParams) (*web3.EthNewFilterResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -399,7 +418,7 @@ func (e EthService) EthProtocolVersion() (*web3.EthProtocolVersionResult, error)
 	return &web3.EthProtocolVersionResult{ProtocolVersion: hexZero}, nil
 }
 
-func (e EthService) EthSign(params *web3.EthSignParams) (*web3.EthSignResult, error) {
+func (e EthService) EthSign(*web3.EthSignParams) (*web3.EthSignResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -409,7 +428,7 @@ func (e EthService) EthAccounts() (*web3.EthAccountsResult, error) {
 		if err == acm.ErrNotFound {
 			return nil, nil
 		}
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	addresses := make([]string, 0, len(accounts))
@@ -429,7 +448,7 @@ func (e EthService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 		if err == acm.ErrNotFound {
 			return nil, nil
 		}
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	accountID := acc.GetIrohaAccountID()
@@ -447,17 +466,17 @@ func (e EthService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 
 	_, err = e.keyStore.SignTransaction(tx, accountID)
 	if err == acm.ErrNotFound {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	txHash, err := e.irohaClient.SendTransaction(context.Background(), tx)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	_, err = e.irohaClient.TxStatusStream(context.Background(), txHash)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	}
 
 	return &web3.EthSendTransactionResult{
@@ -465,15 +484,15 @@ func (e EthService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 	}, nil
 }
 
-func (e EthService) EthSendRawTransaction(params *web3.EthSendRawTransactionParams) (*web3.EthSendRawTransactionResult, error) {
+func (e EthService) EthSendRawTransaction(*web3.EthSendRawTransactionParams) (*web3.EthSendRawTransactionResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthSubmitHashrate(params *web3.EthSubmitHashrateParams) (*web3.EthSubmitHashrateResult, error) {
+func (e EthService) EthSubmitHashrate(*web3.EthSubmitHashrateParams) (*web3.EthSubmitHashrateResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthSubmitWork(params *web3.EthSubmitWorkParams) (*web3.EthSubmitWorkResult, error) {
+func (e EthService) EthSubmitWork(*web3.EthSubmitWorkParams) (*web3.EthSubmitWorkResult, error) {
 	return nil, errors.New("implement me")
 }
 
@@ -481,7 +500,7 @@ func (e EthService) EthSyncing() (*web3.EthSyncingResult, error) {
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthUninstallFilter(params *web3.EthUninstallFilterParams) (*web3.EthUninstallFilterResult, error) {
+func (e EthService) EthUninstallFilter(*web3.EthUninstallFilterParams) (*web3.EthUninstallFilterResult, error) {
 	return nil, errors.New("implement me")
 }
 

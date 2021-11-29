@@ -28,21 +28,20 @@ func NewKeyStore() KeyStore {
 }
 
 var ErrNotExistKey = errors.New("key doesn't exist")
-var ErrAlreadyExistKey = errors.New("the key already exists")
 
-func (k keyStore) Set(accountID string, privKey string) error {
+func (k *keyStore) Set(accountID string, privKey string) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
 	if _, ok := k.store[accountID]; ok {
-		return ErrAlreadyExistKey
-	} else {
-		k.store[accountID] = privKey
 		return nil
 	}
+
+	k.store[accountID] = privKey
+	return nil
 }
 
-func (k keyStore) SignTransaction(tx *pb.Transaction, accountIDs ...string) ([]*pb.Signature, error) {
+func (k *keyStore) SignTransaction(tx *pb.Transaction, accountIDs ...string) ([]*pb.Signature, error) {
 	k.lock.RLock()
 	defer k.lock.RUnlock()
 
@@ -65,7 +64,7 @@ func (k keyStore) SignTransaction(tx *pb.Transaction, accountIDs ...string) ([]*
 	return sigs, nil
 }
 
-func (k keyStore) SignQuery(query *pb.Query, accountID string) (*pb.Signature, error) {
+func (k *keyStore) SignQuery(query *pb.Query, accountID string) (*pb.Signature, error) {
 	k.lock.RLock()
 	defer k.lock.RUnlock()
 

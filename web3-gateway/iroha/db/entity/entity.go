@@ -15,6 +15,12 @@ type BurrowAccountData struct {
 	Data    string `db:"data"`
 }
 
+type BurrowAccountKeyValue struct {
+	Address string `db:"address"`
+	Key     string `db:"key"`
+	Value   string `db:"value"`
+}
+
 type EngineTransaction struct {
 	CallID               int64          `db:"call_id"`
 	TxHash               string         `db:"tx_hash"`

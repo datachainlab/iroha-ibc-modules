@@ -15,6 +15,10 @@ gateway:
   rpc:
     host: localhost
     port: 8545
-  accounts:
-    - id: admin@test
-      privateKey: f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70
+accounts:
+  - id: admin@test
+    privateKey: f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70
+  - id: querier@test
+    privateKey: 30892fd2209d3a93c1af24de61beae22cce0e08937c16276874a8f598efa2b57
+evm:
+  querier: querier@test

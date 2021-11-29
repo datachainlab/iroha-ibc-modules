@@ -45,15 +45,6 @@ func (s *AccountState) GetAll() (addresses []*Account, err error) {
 	return accounts, nil
 }
 
-func (s *AccountState) GetDefaultAccount() (*Account, error) {
-	account, err := s.db.First()
-	if err != nil {
-		return nil, err
-	}
-
-	return account, nil
-}
-
 func (s *AccountState) GetByIrohaAccountID(accountID string) (*Account, error) {
 	account, err := s.db.GetByIrohaAccountID(accountID)
 	if err != nil {
