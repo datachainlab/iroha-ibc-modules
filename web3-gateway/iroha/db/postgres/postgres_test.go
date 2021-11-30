@@ -34,13 +34,12 @@ func TestClient(t *testing.T) {
 	}
 
 	logFilterOpts := []iroha.LogFilterOption{
-		iroha.FromBlockOption(0),
-		iroha.ToBlockOption(0),
-		iroha.AddressOption("7BAF96BBCA5E4469AEEC441A12128BCF719A1FF7"),
-		iroha.TopicsOption(
-			"6be3adec13978223a6a787c43ad17abbf22501bfc461466aeeac04a368ad479c",
-			"981503e0fe5bde28ee3eefdc476eb74e602bbb29f68150d095bfae68a6875178",
-		),
+		//iroha.FromBlockOption(0),
+		//iroha.ToBlockOption(0),
+		//iroha.AddressOption("708b5cd2603fa4f8fc3f3071598bf2080be16093"),
+		//iroha.TopicsOption(
+		//	//"981503e0fe5bde28ee3eefdc476eb74e602bbb29f68150d095bfae68a6875178",
+		//),
 	}
 
 	for _, opt := range logFilterOpts {
@@ -69,7 +68,7 @@ func TestClient(t *testing.T) {
 
 	if len(filter.Address) > 0 {
 		clause()
-		conditions.WriteString(fmt.Sprintf("callee='%s'", filter.Address))
+		conditions.WriteString(fmt.Sprintf("address IN (LOWER('%s'), UPPER('%s'))", filter.Address, filter.Address))
 	}
 
 	if len(filter.Topics) > 0 {
@@ -82,18 +81,29 @@ func TestClient(t *testing.T) {
 			}
 			topicsStr = fmt.Sprintf("%s%s'%s'", topicsStr, sep, topic)
 		}
-		conditions.WriteString(fmt.Sprintf("topic IN (%s)", topicsStr))
+		conditions.WriteString(fmt.Sprintf(`log_idx IN (
+SELECT
+	DISTINCT btl.log_idx
+FROM 
+	burrow_tx_logs_topics AS btlt
+INNER JOIN 
+	burrow_tx_logs btl 
+ON 
+	btlt.log_idx = btl.log_idx
+WHERE 
+	btlt.topic IN (%s)
+)`, topicsStr))
 	}
 
 	query := fmt.Sprintf(`
 SELECT
-	btl.log_idx,
-	btl.call_id,
-	btl.address,
-	btl.data,
+	btl.log_idx as log_idx,
+	btl.call_id as call_id,
+	btl.address as address,
+	btl.data as data,
 	tp.creator_id,
-	tp.height,
-	tp.index,
+	tp.height as height,
+	tp.index as index,
 	tp.hash as tx_hash
 FROM 
 	burrow_tx_logs AS btl
@@ -105,24 +115,10 @@ INNER JOIN
 	tx_positions AS tp
 ON 
 	tp.hash = ec.tx_hash
-WHERE ec.tx_hash IN (
-	SELECT
-		DISTINCT(ec.tx_hash)
-	FROM 
-		burrow_tx_logs_topics AS btlt
-	INNER JOIN 
-		burrow_tx_logs btl 
-	ON 
-		btlt.log_idx = btl.log_idx
-	INNER JOIN 
-		engine_calls AS ec
-	ON 
-		btl.call_id = ec.call_id
-	INNER JOIN 
-		tx_positions AS tp
-	ON 
-		tp.hash = ec.tx_hash %s
-)`, conditions.String())
+%s
+ORDER BY log_idx`, conditions.String())
+
+	log.Println(query)
 
 	var logs []*entity.EngineReceiptLog
 	if err = ddb.Select(&logs, query); err != nil {

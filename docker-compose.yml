@@ -8,7 +8,8 @@ services:
   iroha-node0:
     container_name: iroha-node0
     hostname: iroha-node0
-    image: ghcr.io/hyperledger/iroha-burrow:1.3.0-rc.2
+    image: ghcr.io/hyperledger/iroha-burrow:1.3.0
+    restart: always
     environment:
       - KEY=node0
       - IROHA_POSTGRES_HOST=iroha-node0-postgres

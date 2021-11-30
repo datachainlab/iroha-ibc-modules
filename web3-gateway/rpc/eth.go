@@ -20,6 +20,7 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/evm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
@@ -195,8 +196,9 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 
 	return &web3.EthGetBlockByNumberResult{
 		GetBlockByNumberResult: web3.Block{
-			Number: util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.Height)),
-			Hash:   hexZero,
+			Number:    util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
+			Hash:      hexZero,
+			Timestamp: util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
 		},
 	}, nil
 }
@@ -254,8 +256,67 @@ func (e EthService) EthGetRawTransactionByBlockNumberAndIndex(*web3.EthGetRawTra
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetLogs(*web3.EthGetLogsParams) (*web3.EthGetLogsResult, error) {
-	return nil, errors.New("implement me")
+func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsResult, error) {
+	var filterOpts []db.LogFilterOption
+
+	switch params.FromBlock {
+	case "":
+		fallthrough
+	case "pending":
+		fallthrough
+	case "latest":
+		height, err := e.irohaClient.GetLatestHeight()
+		if err != nil {
+			return nil, err
+		}
+		filterOpts = append(filterOpts, db.FromBlockOption(height))
+	case "earliest":
+		filterOpts = append(filterOpts, db.FromBlockOption(1))
+	default:
+		height, err := strconv.ParseUint(x.RemovePrefix(params.FromBlock), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		filterOpts = append(filterOpts, db.FromBlockOption(height))
+	}
+
+	switch params.ToBlock {
+	case "":
+		fallthrough
+	case "pending":
+		fallthrough
+	case "latest":
+		height, err := e.irohaClient.GetLatestHeight()
+		if err != nil {
+			return nil, err
+		}
+		filterOpts = append(filterOpts, db.ToBlockOption(height))
+	case "earliest":
+		filterOpts = append(filterOpts, db.ToBlockOption(1))
+	default:
+		height, err := strconv.ParseUint(x.RemovePrefix(params.ToBlock), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		filterOpts = append(filterOpts, db.ToBlockOption(height))
+	}
+
+	if len(params.Address) > 0 {
+		filterOpts = append(filterOpts, db.AddressOption(params.Address))
+	}
+
+	if len(params.Topics) > 0 {
+		filterOpts = append(filterOpts, db.TopicsOption(params.Topics...))
+	}
+
+	eLogs, err := e.irohaClient.GetEngineReceiptLogsByFilters(filterOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &web3.EthGetLogsResult{
+		Logs: irohaToEthereumTxReceiptLogs(eLogs),
+	}, nil
 }
 
 func (e EthService) EthGetStorageAt(*web3.EthGetStorageAtParams) (*web3.EthGetStorageAtResult, error) {
@@ -273,7 +334,7 @@ func (e EthService) EthGetTransactionByBlockNumberAndIndex(*web3.EthGetTransacti
 func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHashParams) (*web3.EthGetTransactionByHashResult, error) {
 	eTx, err := e.irohaClient.GetEngineTransaction(params.TransactionHash)
 	if err != nil {
-		return nil, web3.ErrServer
+		return nil, err
 	} else if eTx == nil {
 		return nil, nil
 	}
@@ -325,7 +386,7 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 		return nil, nil
 	}
 
-	eLogs, err := e.irohaClient.GeEngineReceiptLogsByTxHash(eReceipt.TxHash)
+	eLogs, err := e.irohaClient.GetEngineReceiptLogsByTxHash(eReceipt.TxHash)
 	if err != nil {
 		return nil, err
 	}
