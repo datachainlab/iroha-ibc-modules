@@ -60,10 +60,7 @@ func CreatedTime(t uint64) PayLoadMetaOption {
 }
 
 func (c *commandClient) SendTransaction(ctx context.Context, tx *pb.Transaction) (string, error) {
-	reqCtx, cancel := context.WithTimeout(
-		ctx,
-		c.Timeout,
-	)
+	reqCtx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
 	if _, err := c.client.Torii(reqCtx, tx, c.callOpts...); err != nil {
@@ -80,10 +77,7 @@ func (c *commandClient) SendTransaction(ctx context.Context, tx *pb.Transaction)
 }
 
 func (c *commandClient) SendBatchTransaction(ctx context.Context, txList *pb.TxList) ([]string, error) {
-	reqCtx, cancel := context.WithTimeout(
-		ctx,
-		c.Timeout,
-	)
+	reqCtx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
 	if _, err := c.client.ListTorii(reqCtx, txList, c.callOpts...); err != nil {
@@ -105,10 +99,7 @@ func (c *commandClient) SendBatchTransaction(ctx context.Context, txList *pb.TxL
 }
 
 func (c *commandClient) TxStatus(ctx context.Context, txHash string) (*pb.ToriiResponse, error) {
-	reqCtx, cancel := context.WithTimeout(
-		ctx,
-		c.Timeout,
-	)
+	reqCtx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
 	res, err := c.client.Status(reqCtx, &pb.TxStatusRequest{TxHash: txHash}, c.callOpts...)
@@ -120,10 +111,7 @@ func (c *commandClient) TxStatus(ctx context.Context, txHash string) (*pb.ToriiR
 }
 
 func (c *commandClient) TxStatusStream(ctx context.Context, txHash string) (*pb.ToriiResponse, error) {
-	reqCtx, cancel := context.WithTimeout(
-		ctx,
-		c.Timeout,
-	)
+	reqCtx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
 	stream, err := c.client.StatusStream(reqCtx, &pb.TxStatusRequest{TxHash: txHash}, c.callOpts...)

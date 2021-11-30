@@ -7,7 +7,6 @@ import (
 type DB interface {
 	Add(account *Account) error
 	All() ([]*Account, error)
-	First() (*Account, error)
 	GetByIrohaAccountID(accountID string) (*Account, error)
 	GetByIrohaAddress(address string) (*Account, error)
 	GetByEthereumAddress(address string) (*Account, error)
@@ -54,17 +53,6 @@ func (m MemDB) All() ([]*Account, error) {
 	}
 
 	return accounts, nil
-}
-
-func (m MemDB) First() (*Account, error) {
-	// Create read-only transaction
-	txn := m.db.Txn(false)
-	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexId)
-	if err != nil {
-		return nil, err
-	}
-
-	return raw.(*Account), nil
 }
 
 func (m MemDB) GetByIrohaAccountID(accountID string) (*Account, error) {

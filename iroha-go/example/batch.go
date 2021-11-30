@@ -24,7 +24,7 @@ func Batch() {
 	batchTx1 := command.BuildTransaction(
 		command.BuildPayload(
 			[]*pb.Command{
-				command.CreateAsset(assetID, "test", 2),
+				command.CreateAsset(assetID, DomainId, 2),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),
@@ -55,10 +55,7 @@ func Batch() {
 		tx.Signatures = sigs
 	}
 
-	txHashList, err := commandClient.SendBatchTransaction(
-		context.Background(),
-		txList,
-	)
+	txHashList, err := commandClient.SendBatchTransaction(context.Background(), txList)
 	if err != nil {
 		panic(err)
 	}

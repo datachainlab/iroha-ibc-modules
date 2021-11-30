@@ -13,7 +13,8 @@ type DBClient interface {
 	GetBurrowAccountKeyValueByAddressAndKey(address, key string) (*entity.BurrowAccountKeyValue, error)
 	GetEngineTransaction(txHash string) (*entity.EngineTransaction, error)
 	GetEngineReceipt(txHash string) (*entity.EngineReceipt, error)
-	GeEngineReceiptLogsByTxHash(txHash string) ([]*entity.EngineReceiptLog, error)
+	GetEngineReceiptLogsByTxHash(txHash string) ([]*entity.EngineReceiptLog, error)
+	GetEngineReceiptLogsByFilters(opts ...LogFilterOption) ([]*entity.EngineReceiptLog, error)
 }
 
 type TxReceiptLogFilter struct {
