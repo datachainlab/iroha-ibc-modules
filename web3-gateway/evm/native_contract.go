@@ -13,8 +13,8 @@ import (
 
 	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
-	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/keyring"
 )
 
 var (
@@ -322,14 +322,14 @@ type callContext struct {
 	queryClient      query.QueryClient
 	dbClient         db.DBClient
 	querierAccountID string
-	keyStore         acm.KeyStore
+	keyStore         keyring.KeyStore
 }
 
 func RegisterCallContext(
 	queryClient query.QueryClient,
 	dbClient db.DBClient,
 	querierAccountID string,
-	keyStore acm.KeyStore,
+	keyStore keyring.KeyStore,
 ) *callContext {
 	once.Do(func() {
 		callCtx = &callContext{

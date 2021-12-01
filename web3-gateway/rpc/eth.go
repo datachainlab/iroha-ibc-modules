@@ -22,6 +22,7 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/keyring"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
 
@@ -36,7 +37,7 @@ var _ web3.Service = (*EthService)(nil)
 
 type EthService struct {
 	accountState *acm.AccountState
-	keyStore     acm.KeyStore
+	keyStore     keyring.KeyStore
 	irohaClient  *iroha.Client
 	logger       *logging.Logger
 	querier      string
@@ -44,7 +45,7 @@ type EthService struct {
 
 func NewEthService(
 	accountState *acm.AccountState,
-	keyStore acm.KeyStore,
+	keyStore keyring.KeyStore,
 	irohaClient *iroha.Client,
 	logger *logging.Logger,
 	querier string,
@@ -163,24 +164,14 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	var err error
 	if params.BlockNumber == "latest" || params.BlockNumber == "pending" {
 		height, err = e.irohaClient.GetLatestHeight()
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		height, err = strconv.ParseUint(x.RemovePrefix(params.BlockNumber), 16, 64)
-		if err != nil {
-			return nil, err
-		}
 	}
-
 	if err != nil {
 		return nil, err
 	}
 
-	q := query.GetBlock(
-		height,
-		query.CreatorAccountId(e.querier),
-	)
+	q := query.GetBlock(height, query.CreatorAccountId(e.querier))
 
 	_, err = e.keyStore.SignQuery(q, e.querier)
 	if err != nil {

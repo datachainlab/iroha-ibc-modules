@@ -20,6 +20,7 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/api"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/postgres"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/keyring"
 )
 
 func Serve(cfg *config.Config) error {
@@ -35,7 +36,7 @@ func Serve(cfg *config.Config) error {
 		return err
 	}
 
-	keyStore := acm.NewKeyStore()
+	keyStore := keyring.NewKeyStore()
 	accountState := acm.NewAccountState(accountDB)
 	for _, account := range cfg.Accounts {
 		if err = accountState.Add(account.ID, account.PrivateKey); err != nil {
