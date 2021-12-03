@@ -19,7 +19,7 @@ import (
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/evm"
-	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/api"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/keyring"
@@ -36,26 +36,29 @@ const (
 var _ web3.Service = (*EthService)(nil)
 
 type EthService struct {
-	accountState *acm.AccountState
-	keyStore     keyring.KeyStore
-	irohaClient  *iroha.Client
-	logger       *logging.Logger
-	querier      string
+	accountState      *acm.AccountState
+	keyStore          keyring.KeyStore
+	irohaAPIClient    api.ApiClient
+	irohaDBTransactor db.DBTransactor
+	logger            *logging.Logger
+	querier           string
 }
 
 func NewEthService(
 	accountState *acm.AccountState,
 	keyStore keyring.KeyStore,
-	irohaClient *iroha.Client,
+	irohaAPIClient api.ApiClient,
+	irohaDBTransactor db.DBTransactor,
 	logger *logging.Logger,
 	querier string,
 ) *EthService {
 	return &EthService{
-		accountState: accountState,
-		keyStore:     keyStore,
-		irohaClient:  irohaClient,
-		logger:       logger,
-		querier:      querier,
+		accountState:      accountState,
+		keyStore:          keyStore,
+		irohaAPIClient:    irohaAPIClient,
+		irohaDBTransactor: irohaDBTransactor,
+		logger:            logger,
+		querier:           querier,
 	}
 }
 
@@ -89,8 +92,12 @@ func (e EthService) NetVersion() (*web3.NetVersionResult, error) {
 }
 
 func (e EthService) EthBlockNumber() (*web3.EthBlockNumberResult, error) {
-	height, err := e.irohaClient.GetLatestHeight()
-	if err != nil {
+	var height uint64
+
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		height, err = querier.GetLatestHeight()
+		return
+	}); err != nil {
 		return nil, err
 	}
 	return &web3.EthBlockNumberResult{
@@ -104,9 +111,15 @@ func (e EthService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, er
 		return nil, err
 	}
 
+	callerAccount, err := e.accountState.GetByIrohaAddress(params.From)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := evm.CallSim(
-		e.irohaClient.DBClient, e.logger,
-		params.From, params.To, params.Hash,
+		e.irohaDBTransactor, e.logger,
+		callerAccount.IrohaAccountID,
+		params.From, params.To,
 		input,
 	)
 	if err != nil {
@@ -163,7 +176,10 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	var height uint64
 	var err error
 	if params.BlockNumber == "latest" || params.BlockNumber == "pending" {
-		height, err = e.irohaClient.GetLatestHeight()
+		err = e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+			height, err = querier.GetLatestHeight()
+			return
+		})
 	} else {
 		height, err = strconv.ParseUint(x.RemovePrefix(params.BlockNumber), 16, 64)
 	}
@@ -178,7 +194,7 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 		return nil, err
 	}
 
-	res, err := e.irohaClient.SendQuery(context.Background(), q)
+	res, err := e.irohaAPIClient.SendQuery(context.Background(), q)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +219,11 @@ func (e EthService) EthGetBlockTransactionCountByNumber(*web3.EthGetBlockTransac
 }
 
 func (e EthService) EthGetCode(params *web3.EthGetCodeParams) (*web3.EthGetCodeResult, error) {
-	data, err := e.irohaClient.GetBurrowAccountDataByAddress(params.Address)
-	if err != nil {
+	var data *entity.BurrowAccountData
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		data, err = querier.GetBurrowAccountDataByAddress(params.Address)
+		return
+	}); err != nil {
 		return nil, err
 	} else if data == nil {
 		return nil, nil
@@ -256,11 +275,17 @@ func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsR
 	case "pending":
 		fallthrough
 	case "latest":
-		height, err := e.irohaClient.GetLatestHeight()
-		if err != nil {
+		if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) error {
+			height, err := querier.GetLatestHeight()
+			if err != nil {
+				return err
+			}
+			filterOpts = append(filterOpts, db.FromBlockOption(height))
+
+			return nil
+		}); err != nil {
 			return nil, err
 		}
-		filterOpts = append(filterOpts, db.FromBlockOption(height))
 	case "earliest":
 		filterOpts = append(filterOpts, db.FromBlockOption(1))
 	default:
@@ -277,11 +302,19 @@ func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsR
 	case "pending":
 		fallthrough
 	case "latest":
-		height, err := e.irohaClient.GetLatestHeight()
-		if err != nil {
+		if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) error {
+			height, err := querier.GetLatestHeight()
+			if err != nil {
+				return err
+			}
+
+			filterOpts = append(filterOpts, db.ToBlockOption(height))
+
+			return nil
+		}); err != nil {
 			return nil, err
 		}
-		filterOpts = append(filterOpts, db.ToBlockOption(height))
+
 	case "earliest":
 		filterOpts = append(filterOpts, db.ToBlockOption(1))
 	default:
@@ -300,8 +333,12 @@ func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsR
 		filterOpts = append(filterOpts, db.TopicsOption(params.Topics...))
 	}
 
-	eLogs, err := e.irohaClient.GetEngineReceiptLogsByFilters(filterOpts...)
-	if err != nil {
+	var eLogs []*entity.EngineReceiptLog
+
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		eLogs, err = querier.GetEngineReceiptLogsByFilters(filterOpts...)
+		return
+	}); err != nil {
 		return nil, err
 	}
 
@@ -323,8 +360,11 @@ func (e EthService) EthGetTransactionByBlockNumberAndIndex(*web3.EthGetTransacti
 }
 
 func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHashParams) (*web3.EthGetTransactionByHashResult, error) {
-	eTx, err := e.irohaClient.GetEngineTransaction(params.TransactionHash)
-	if err != nil {
+	var eTx *entity.EngineTransaction
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		eTx, err = querier.GetEngineTransaction(params.TransactionHash)
+		return
+	}); err != nil {
 		return nil, err
 	} else if eTx == nil {
 		return nil, nil
@@ -370,23 +410,27 @@ func (e EthService) EthGetTransactionCount(*web3.EthGetTransactionCountParams) (
 }
 
 func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionReceiptParams) (*web3.EthGetTransactionReceiptResult, error) {
-	eReceipt, err := e.irohaClient.GetEngineReceipt(params.TransactionHash)
-	if err != nil {
+	var eReceipt *entity.EngineReceipt
+
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		eReceipt, err = querier.GetEngineReceipt(params.TransactionHash)
+		return
+	}); err != nil {
 		return nil, err
 	} else if eReceipt == nil {
 		return nil, nil
 	}
 
-	eLogs, err := e.irohaClient.GetEngineReceiptLogsByTxHash(eReceipt.TxHash)
-	if err != nil {
+	var eLogs []*entity.EngineReceiptLog
+
+	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
+		eLogs, err = querier.GetEngineReceiptLogsByTxHash(eReceipt.TxHash)
+		return
+	}); err != nil {
 		return nil, err
 	}
 
 	from := util.IrohaAccountIDToAddressHex(eReceipt.CreatorID)
-	if err != nil {
-		return nil, err
-	}
-
 	receipt := web3.Receipt{
 		From:              util.ToEthereumHexString(from),
 		TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
@@ -521,12 +565,12 @@ func (e EthService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 		return nil, err
 	}
 
-	txHash, err := e.irohaClient.SendTransaction(context.Background(), tx)
+	txHash, err := e.irohaAPIClient.SendTransaction(context.Background(), tx)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = e.irohaClient.TxStatusStream(context.Background(), txHash)
+	_, err = e.irohaAPIClient.TxStatusStream(context.Background(), txHash)
 	if err != nil {
 		return nil, err
 	}

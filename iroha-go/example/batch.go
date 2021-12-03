@@ -11,13 +11,13 @@ import (
 )
 
 func Batch() {
-	conn, err := conn()
+	conn, err := connect()
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
-	commandClient := command.New(conn, time.Second*60)
+	commandClient := command.New(conn, time.Second*10)
 
 	assetID := randStringRunes(6)
 	fmt.Println("assetID:", assetID)
@@ -38,8 +38,22 @@ func Batch() {
 			command.CreatorAccountId(AdminAccountId),
 		),
 	)
+
+	batchTx3 := command.BuildTransaction(
+		command.BuildPayload(
+			[]*pb.Command{
+				command.TransferAsset(
+					AdminAccountId,
+					UserAccountId,
+					fmt.Sprintf("%s#%s", assetID, DomainId),
+					"Transfer",
+					"100"),
+			},
+			command.CreatorAccountId(AdminAccountId),
+		),
+	)
 	txList, err := command.BuildBatchTransactions(
-		[]*pb.Transaction{batchTx1, batchTx2},
+		[]*pb.Transaction{batchTx1, batchTx2, batchTx3},
 		pb.Transaction_Payload_BatchMeta_ATOMIC,
 	)
 	if err != nil {
