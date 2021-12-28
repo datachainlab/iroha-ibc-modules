@@ -9,14 +9,12 @@ import (
 var _ exec.EventSink = (*eventSink)(nil)
 
 type eventSink struct {
-	txHash []byte
 	height uint64
 	Events []*exec.Event
 }
 
-func newEventSink(txHash []byte, height uint64) *eventSink {
+func newEventSink(height uint64) *eventSink {
 	return &eventSink{
-		txHash: txHash,
 		height: height,
 		Events: []*exec.Event{},
 	}
@@ -26,7 +24,7 @@ func (s eventSink) Log(log *exec.LogEvent) error {
 	s.Append(&exec.Event{
 		Header: &exec.Header{
 			TxType:    payload.TypeCall,
-			TxHash:    s.txHash,
+			TxHash:    nil,
 			EventType: exec.TypeLog,
 			EventID:   exec.EventStringLogEvent(log.Address),
 			Height:    s.height,
@@ -41,7 +39,7 @@ func (s eventSink) Call(call *exec.CallEvent, exception *errors.Exception) error
 	s.Append(&exec.Event{
 		Header: &exec.Header{
 			TxType:    payload.TypeCall,
-			TxHash:    s.txHash,
+			TxHash:    nil,
 			EventType: exec.TypeCall,
 			EventID:   exec.EventStringAccountCall(call.CallData.Callee),
 			Height:    s.height,

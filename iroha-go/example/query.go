@@ -6,24 +6,20 @@ import (
 	"time"
 
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
-	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 )
 
 func Query() {
-	conn, err := conn()
+	conn, err := connect()
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
 	queryClient := query.New(conn, time.Second*60)
-
 	q := query.GetAccountAsset(
-		AdminAccountId,
-		&pb.AssetPaginationMeta{
-			PageSize: 500,
-		},
+		UserAccountId,
+		nil,
 		query.CreatorAccountId(AdminAccountId),
 	)
 
@@ -39,7 +35,8 @@ func Query() {
 		panic(err)
 	}
 
-	for _, asset := range res.GetAccountAssetsResponse().GetAccountAssets() {
-		fmt.Println(asset)
-	}
+	fmt.Println(res.GetAccountAssetsResponse().GetAccountAssets())
+	//for _, asset := range res.GetAccountDetailResponse().GetDetail() {
+	//	fmt.Println(asset)
+	//}
 }

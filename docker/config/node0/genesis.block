@@ -18,10 +18,16 @@
                           "createRole":{
                              "roleName":"admin",
                              "permissions":[
+                                "can_add_asset_qty",
+                                "can_add_domain_asset_qty",
                                 "can_add_peer",
                                 "can_add_signatory",
+                                "can_append_role",
                                 "can_create_account",
+                                "can_create_asset",
                                 "can_create_domain",
+                                "can_create_role",
+                                "can_detach_role",
                                 "can_get_all_acc_ast",
                                 "can_get_all_acc_ast_txs",
                                 "can_get_all_acc_detail",
@@ -30,10 +36,25 @@
                                 "can_get_all_signatories",
                                 "can_get_all_txs",
                                 "can_get_blocks",
+                                "can_get_domain_acc_ast",
+                                "can_get_domain_acc_ast_txs",
+                                "can_get_domain_acc_detail",
+                                "can_get_domain_accounts",
+                                "can_get_my_acc_ast_txs",
+                                "can_get_my_acc_detail",
+                                "can_get_my_acc_txs",
+                                "can_get_my_account",
+                                "can_get_peers",
                                 "can_get_roles",
                                 "can_read_assets",
+                                "can_receive",
+                                "can_remove_peer",
                                 "can_remove_signatory",
-                                "can_set_quorum"
+                                "can_set_detail",
+                                "can_set_quorum",
+                                "can_subtract_asset_qty",
+                                "can_subtract_domain_asset_qty",
+                                "can_transfer"
                              ]
                           }
                        },

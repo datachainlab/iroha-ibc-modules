@@ -10,6 +10,70 @@ type TopBlockInfo struct {
 	Hash   string `db:"hash"`
 }
 
+type Account struct {
+	Perm
+	AccountID string `db:"account_id"`
+	DomainID  string `db:"domain_id"`
+	Quorum    int64  `db:"quorum"`
+	Data      string `db:"data"`
+	Roles     string `db:"roles"`
+}
+
+type AccountDetail struct {
+	Perm
+	Json                string         `db:"json"`
+	TotalNumber         int64          `db:"total_number"`
+	DomainID            sql.NullString `db:"next_writer"`
+	Data                sql.NullString `db:"next_key"`
+	TargetAccountExists int64          `db:"target_account_exists"`
+}
+
+type AssetInfo struct {
+	Perm
+	DomainID  string `db:"domain_id"`
+	Precision int64  `db:"precision"`
+}
+
+type AccountAsset struct {
+	Perm
+	AccountID   string `db:"account_id"`
+	AssetID     string `db:"asset_id"`
+	Amount      int64  `db:"amount"`
+	TotalNumber int64  `db:"total_number"`
+}
+
+type Signatory struct {
+	Perm
+	PublicKey string `db:"public_key"`
+}
+
+type Peer struct {
+	Perm
+	PublicKey      string         `db:"public_key"`
+	Address        string         `db:"address"`
+	TlsCertificate sql.NullString `db:"tls_certificate"`
+}
+
+type Role struct {
+	Perm
+	RoleID string `db:"role_id"`
+}
+
+type RolePermission struct {
+	Perm
+	Permission string `db:"permission"`
+}
+
+type Perm struct {
+	Perm bool `db:"perm"`
+}
+
+type Transaction struct {
+	Perm
+	Height int64  `db:"height"`
+	Hash   string `db:"hash"`
+}
+
 type BurrowAccountData struct {
 	Address string `db:"address"`
 	Data    string `db:"data"`

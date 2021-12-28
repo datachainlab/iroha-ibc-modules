@@ -16,10 +16,9 @@ import (
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/config"
-	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/evm"
-	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/api"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/postgres"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/keyring"
 )
 
 func Serve(cfg *config.Config) error {
@@ -35,7 +34,7 @@ func Serve(cfg *config.Config) error {
 		return err
 	}
 
-	keyStore := acm.NewKeyStore()
+	keyStore := keyring.NewKeyStore()
 	accountState := acm.NewAccountState(accountDB)
 	for _, account := range cfg.Accounts {
 		if err = accountState.Add(account.ID, account.PrivateKey); err != nil {
@@ -62,7 +61,7 @@ func Serve(cfg *config.Config) error {
 		api.QueryTimeout(cfg.Iroha.Api.QueryTimeout),
 	)
 
-	irohaDBClient, dbConn, err := postgres.NewClient(
+	irohaDBTransactor, err := postgres.NewTransactor(
 		cfg.Iroha.Database.Postgres.User,
 		cfg.Iroha.Database.Postgres.Password,
 		cfg.Iroha.Database.Postgres.Host,
@@ -73,21 +72,18 @@ func Serve(cfg *config.Config) error {
 		return err
 	}
 
-	irohaClient := iroha.New(irohaApiClient, irohaDBClient)
-
 	// TODO configurable
 	logger, err := logconfig.New().NewLogger()
 	if err != nil {
 		return err
 	}
 
-	evm.RegisterCallContext(irohaApiClient, irohaDBClient, cfg.EVM.Querier, keyStore)
-
 	web3Server := web3.NewServer(
 		NewEthService(
 			accountState,
 			keyStore,
-			irohaClient,
+			irohaApiClient,
+			irohaDBTransactor,
 			logger,
 			cfg.EVM.Querier,
 		),
@@ -114,7 +110,7 @@ func Serve(cfg *config.Config) error {
 			return err
 		}
 
-		if err := dbConn.Close(); err != nil {
+		if err := irohaDBTransactor.Close(); err != nil {
 			return err
 		}
 

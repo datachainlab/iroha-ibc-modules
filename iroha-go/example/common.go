@@ -11,10 +11,12 @@ const (
 	ToriiAddress    = "localhost:50051"
 	DomainId        = "test"
 	AdminAccountId  = "admin@test"
+	UserAccountId   = "test@test"
 	AdminPrivateKey = "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70"
+	AssetId         = "coolcoin#test"
 )
 
-func conn() (*grpc.ClientConn, error) {
+func connect() (*grpc.ClientConn, error) {
 	conn, err := grpc.Dial(
 		ToriiAddress,
 		grpc.WithInsecure(),

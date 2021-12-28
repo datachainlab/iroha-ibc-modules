@@ -11,7 +11,7 @@ import (
 )
 
 func Tx() {
-	conn, err := conn()
+	conn, err := connect()
 	if err != nil {
 		panic(err)
 	}
@@ -31,7 +31,9 @@ func Tx() {
 	tx := command.BuildTransaction(
 		command.BuildPayload(
 			[]*pb.Command{
-				command.CreateAccount(accountID, DomainId, pubKey.Hex()),
+				//command.CreateAccount(accountID, DomainId, pubKey.Hex()),
+				//command.AddAssetQuantity(AssetId, "10.5"),
+				command.SubtractAssetQuantity(AssetId, "1.2"),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),

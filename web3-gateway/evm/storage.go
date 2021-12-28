@@ -8,6 +8,7 @@ import (
 	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/binary"
 	"github.com/hyperledger/burrow/crypto"
+	"github.com/hyperledger/burrow/execution/errors"
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 )
@@ -15,15 +16,17 @@ import (
 var _ acmstate.ReaderWriter = (*storage)(nil)
 
 type storage struct {
-	dbClient db.DBClient
+	dbExecer db.DBExecer
 }
 
-func newStorage(dbClient db.DBClient) *storage {
-	return &storage{dbClient: dbClient}
+func newStorage(dbExecer db.DBExecer) *storage {
+	return &storage{
+		dbExecer: dbExecer,
+	}
 }
 
 func (i storage) GetAccount(address crypto.Address) (*burrow.Account, error) {
-	accData, err := i.dbClient.GetBurrowAccountDataByAddress(address.String())
+	accData, err := i.dbExecer.GetBurrowAccountDataByAddress(address.String())
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +59,23 @@ func (i storage) GetAccount(address crypto.Address) (*burrow.Account, error) {
 	return account, nil
 }
 
-func (i storage) UpdateAccount(*burrow.Account) error {
-	return nil
+func (i storage) UpdateAccount(account *burrow.Account) error {
+	if account == nil {
+		return errors.Errorf(errors.Codes.IllegalWrite, "UpdateAccount passed nil account")
+	}
+
+	marshalledData, err := account.Marshal()
+	if err != nil {
+		return err
+	}
+
+	data := hex.EncodeToString(marshalledData)
+
+	return i.dbExecer.UpsertBurrowAccountDataByAddress(account.Address.String(), data)
 }
 
 func (i storage) GetStorage(address crypto.Address, key binary.Word256) (value []byte, err error) {
-	kv, err := i.dbClient.GetBurrowAccountKeyValueByAddressAndKey(address.String(), key.String())
+	kv, err := i.dbExecer.GetBurrowAccountKeyValueByAddressAndKey(address.String(), key.String())
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +90,8 @@ func (i storage) GetStorage(address crypto.Address, key binary.Word256) (value [
 	return
 }
 
-func (i storage) RemoveAccount(crypto.Address) error {
-	return nil
+func (i storage) RemoveAccount(address crypto.Address) error {
+	return i.dbExecer.DeleteBurrowAccountKeyValueByAddress(address.String())
 }
 
 func (i storage) SetStorage(crypto.Address, binary.Word256, []byte) error {

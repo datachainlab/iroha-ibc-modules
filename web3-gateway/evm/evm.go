@@ -1,11 +1,12 @@
 package evm
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
+	"sync"
 
 	burrow "github.com/hyperledger/burrow/acm"
-	"github.com/hyperledger/burrow/acm/acmstate"
 	"github.com/hyperledger/burrow/crypto"
 	x "github.com/hyperledger/burrow/encoding/hex"
 	"github.com/hyperledger/burrow/execution/engine"
@@ -15,14 +16,17 @@ import (
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/logging/structure"
 
+	evmCtx "github.com/datachainlab/iroha-ibc-modules/web3-gateway/evm/context"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 )
 
+var reqLock sync.Mutex
+
 func CallSim(
-	dbClient db.DBClient,
+	dbTransactor db.DBTransactor,
 	logger *logging.Logger,
+	callerAccountID string,
 	caller, callee string,
-	txHash string,
 	input []byte,
 ) ([]byte, error) {
 	caller = x.RemovePrefix(caller)
@@ -35,45 +39,24 @@ func CallSim(
 		)
 	}
 
-	natives, err := createNatives()
-	if err != nil {
-		return nil, err
-	}
-
-	logger = logger.WithScope("EVM")
-	vm := evm.New(evm.Options{
-		Natives: natives,
-		Logger:  logger.With(structure.TxHashKey, txHash),
-	})
-
-	state := acmstate.NewCache(
-		newStorage(dbClient),
-		acmstate.Named("TxCache"),
-		acmstate.ReadOnly,
-	)
-
-	blockchain := newBlockchain()
-
-	txHashBytes, err := hex.DecodeString(txHash)
-	if err != nil {
-		return nil, err
-	}
-	eventSink := newEventSink(txHashBytes, blockchain.blockHeight)
-
 	callerAddress, err := crypto.AddressFromHexString(caller)
 	if err != nil {
 		return nil, err
 	}
 
-	calleeAccount, err := getBurrowAccount(dbClient, callee)
-	if err != nil {
+	var calleeAccount *burrow.Account
+
+	if err = dbTransactor.Exec(context.Background(), callerAccountID, func(execer db.DBExecer) (err error) {
+		calleeAccount, err = getBurrowAccount(execer, callee)
+		return
+	}); err != nil {
 		return nil, err
 	}
 
 	calleeAddress := calleeAccount.Address
 
 	var gasLimit uint64 = 10000000
-	params := engine.CallParams{
+	callParams := engine.CallParams{
 		Caller: callerAddress,
 		Callee: calleeAddress,
 		Input:  input,
@@ -81,25 +64,31 @@ func CallSim(
 		Gas:    &gasLimit,
 	}
 
-	ret, err := vm.Execute(state, blockchain, eventSink, params, calleeAccount.EVMCode)
-	if err != nil {
-		logger.InfoMsg("Error on EVM execution",
-			structure.ErrorKey, err)
-		err = errors.AsException(
-			errors.Wrapf(err, "call error: %v\nEVM call trace: %s",
-				err, eventSink.CallTrace(),
-			),
-		)
+	reqLock.Lock()
+	defer reqLock.Unlock()
+
+	var vmResult []byte
+	var vmErr error
+
+	if err = dbTransactor.ExecWithTxBoundary(context.Background(), callerAccountID, func(execer db.DBExecer) error {
+		evmCtx.StoreCallContext(callParams, &evmCtx.CallContext{Caller: callerAccountID, Execer: execer})
+		defer evmCtx.DeleteCallContext(callParams)
+
+		vmResult, vmErr = execute(execer, logger, callParams, calleeAccount.EVMCode)
+
+		_ = logger.TraceMsg("Successful execution")
+		_ = logger.TraceMsg("VM Call complete",
+			"caller", callerAddress,
+			"callee", calleeAddress,
+			"return", vmResult,
+			structure.ErrorKey, vmErr)
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
-	logger.TraceMsg("Successful execution")
-	logger.TraceMsg("VM Call complete",
-		"caller", callerAddress,
-		"callee", calleeAddress,
-		"return", ret,
-		structure.ErrorKey, err)
-
-	return ret, err
+	return vmResult, vmErr
 
 }
 
@@ -111,8 +100,8 @@ func createNatives() (*native.Natives, error) {
 	return ns, nil
 }
 
-func getBurrowAccount(dbClient db.DBClient, address string) (*burrow.Account, error) {
-	calleeAccData, err := dbClient.GetBurrowAccountDataByAddress(address)
+func getBurrowAccount(execer db.DBExecer, address string) (*burrow.Account, error) {
+	calleeAccData, err := execer.GetBurrowAccountDataByAddress(address)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"error getting account at address %s: %s",
@@ -137,4 +126,39 @@ func getBurrowAccount(dbClient db.DBClient, address string) (*burrow.Account, er
 	}
 
 	return calleeAccount, nil
+}
+
+func execute(
+	dbExecer db.DBExecer,
+	logger *logging.Logger,
+	callParams engine.CallParams,
+	evmCode []byte,
+) ([]byte, error) {
+	natives, err := createNatives()
+	if err != nil {
+		return nil, err
+	}
+
+	logger = logger.WithScope("EVM")
+	vm := evm.New(evm.Options{
+		Natives: natives,
+		Logger:  logger,
+	})
+
+	state := newStorage(dbExecer)
+	bc := newBlockchain()
+	es := newEventSink(bc.blockHeight)
+
+	ret, err := vm.Execute(state, bc, es, callParams, evmCode)
+	if err != nil {
+		logger.InfoMsg("Error on EVM execution", structure.ErrorKey, err)
+
+		err = errors.AsException(
+			errors.Wrapf(err, "call error: %v\nEVM call trace: %s",
+				err, es.CallTrace(),
+			),
+		)
+	}
+
+	return ret, err
 }
