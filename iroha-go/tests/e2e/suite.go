@@ -2,9 +2,7 @@ package e2e
 
 import (
 	"context"
-	"crypto/ed25519"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -107,12 +105,12 @@ func (suite *TestSuite) SendQueryWithError(query *pb.Query, privKey string) (*pb
 }
 
 func (suite *TestSuite) CreateKeyPair() (string, string, error) {
-	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+	pubKey, privKey, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		return "", "", err
 	}
 
-	return hex.EncodeToString(pubKey), hex.EncodeToString(privKey), nil
+	return pubKey.Hex(), privKey.Hex(), nil
 }
 
 func (suite *TestSuite) AddUnixSuffix(target, delimiter string) string {
