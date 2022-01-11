@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/hyperledger/burrow/crypto"
+	x "github.com/hyperledger/burrow/encoding/hex"
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
@@ -48,7 +51,7 @@ func (s *AccountState) GetAll() (addresses []*Account, err error) {
 func (s *AccountState) GetByIrohaAccountID(accountID string) (*Account, error) {
 	account, err := s.db.GetByIrohaAccountID(accountID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w(%s)", err, accountID)
 	}
 
 	return account, nil
@@ -57,19 +60,26 @@ func (s *AccountState) GetByIrohaAccountID(accountID string) (*Account, error) {
 func (s *AccountState) GetByIrohaAddress(address string) (*Account, error) {
 	account, err := s.db.GetByIrohaAddress(util.ToIrohaHexString(address))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w(%s)", err, address)
 	}
 
 	return account, nil
 }
 
 func (s *AccountState) GetByEthereumAddress(address string) (*Account, error) {
-	account, err := s.db.GetByEthereumAddress(address)
+	if !has0xPrefix(address) {
+		address = x.AddPrefix(address)
+	}
+	account, err := s.db.GetByEthereumAddress(strings.ToLower(address))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w(%s)", err, address)
 	}
 
 	return account, nil
+}
+
+func has0xPrefix(s string) bool {
+	return len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
 }
 
 type Account struct {
@@ -96,8 +106,12 @@ func NewAccount(irohaAccountID string, privKey string) (*Account, error) {
 		return nil, err
 	}
 
+	ethPubKey := ethPrivKey.GetPublicKey()
+
+	ethAddress := util.ToEthereumHexString(ethPubKey.GetAddress().String())
+
 	return &Account{
-		EthereumAddress: util.ToEthereumHexString(ethPrivKey.GetPublicKey().GetAddress().String()),
+		EthereumAddress: ethAddress,
 		IrohaAccountID:  irohaAccountID,
 		IrohaAddress:    util.ToIrohaHexString(irohaAddress.String()),
 	}, nil

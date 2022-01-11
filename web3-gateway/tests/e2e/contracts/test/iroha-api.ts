@@ -1,0 +1,15 @@
+import Accounts = Truffle.Accounts;
+
+const IrohaAPI = artifacts.require("IrohaAPI");
+
+/*
+ * uncomment accounts to access the test accounts made available by the
+ * Ethereum client
+ * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
+ */
+contract("IrohaAPI", function (accounts: Accounts) {
+  it("should assert true", async function () {
+    await IrohaAPI.deployed();
+    return assert.isTrue(true);
+  });
+});

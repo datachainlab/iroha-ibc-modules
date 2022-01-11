@@ -14,10 +14,6 @@ func IrohaAccountIDToAddressHex(accountID string) string {
 	return hex.EncodeToString(addr[12:32])
 }
 
-func HexToBurrowAddress(h string) (crypto.Address, error) {
-	return crypto.AddressFromHexString(x.RemovePrefix(h))
-}
-
 func ToEthereumHexString(h string) string {
 	return strings.ToLower(x.AddPrefix(h))
 }

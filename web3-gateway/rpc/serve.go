@@ -12,6 +12,7 @@ import (
 	"github.com/hyperledger/burrow/process"
 	"github.com/hyperledger/burrow/rpc/lib/server"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/config"
@@ -47,7 +48,7 @@ func Serve(cfg *config.Config) error {
 	grpConn, err := grpc.Dial(
 		fmt.Sprintf("%s:%v", cfg.Iroha.Api.Host, cfg.Iroha.Api.Port),
 		// TODO configurable
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 	if err != nil {
@@ -77,16 +78,16 @@ func Serve(cfg *config.Config) error {
 		return err
 	}
 
-	ethService := NewEthService(
-		accountState,
-		keyStore,
-		irohaApiClient,
-		irohaDBTransactor,
-		logger,
-		cfg.EVM.Querier,
+	web3Server := NewHTTPServer(
+		NewEthService(
+			accountState,
+			keyStore,
+			irohaApiClient,
+			irohaDBTransactor,
+			logger,
+			cfg.EVM.Querier,
+		),
 	)
-
-	web3Server := NewHTTPServer(ethService)
 
 	srv, err := server.StartHTTPServer(
 		listener,

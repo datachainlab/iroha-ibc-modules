@@ -31,9 +31,7 @@ func Tx() {
 	tx := command.BuildTransaction(
 		command.BuildPayload(
 			[]*pb.Command{
-				//command.CreateAccount(accountID, DomainId, pubKey.Hex()),
-				//command.AddAssetQuantity(AssetId, "10.5"),
-				command.SubtractAssetQuantity(AssetId, "1.2"),
+				command.CreateAccount(accountID, DomainId, pubKey.Hex()),
 			},
 			command.CreatorAccountId(AdminAccountId),
 		),

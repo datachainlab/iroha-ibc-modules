@@ -10,6 +10,7 @@ import (
  * https://eth.wiki/json-rpc/API#returns-43
  * so create a Log struct with Topics set in string array.
  */
+
 type EthGetTransactionReceiptResult struct {
 	// returns either a receipt or null
 	Receipt

@@ -36,7 +36,4 @@ func Query() {
 	}
 
 	fmt.Println(res.GetAccountAssetsResponse().GetAccountAssets())
-	//for _, asset := range res.GetAccountDetailResponse().GetDetail() {
-	//	fmt.Println(asset)
-	//}
 }
