@@ -33,8 +33,6 @@ const (
 	hexOne    = "0x1"
 )
 
-var _ web3.Service = (*EthService)(nil)
-
 type EthService struct {
 	accountState      *acm.AccountState
 	keyStore          keyring.KeyStore
@@ -266,7 +264,7 @@ func (e EthService) EthGetRawTransactionByBlockNumberAndIndex(*web3.EthGetRawTra
 	return nil, errors.New("implement me")
 }
 
-func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsResult, error) {
+func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*EthGetLogsResult, error) {
 	var filterOpts []db.LogFilterOption
 
 	switch params.FromBlock {
@@ -342,7 +340,7 @@ func (e EthService) EthGetLogs(params *web3.EthGetLogsParams) (*web3.EthGetLogsR
 		return nil, err
 	}
 
-	return &web3.EthGetLogsResult{
+	return &EthGetLogsResult{
 		Logs: irohaToEthereumTxReceiptLogs(eLogs),
 	}, nil
 }
@@ -409,7 +407,7 @@ func (e EthService) EthGetTransactionCount(*web3.EthGetTransactionCountParams) (
 	}, nil
 }
 
-func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionReceiptParams) (*web3.EthGetTransactionReceiptResult, error) {
+func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionReceiptParams) (*EthGetTransactionReceiptResult, error) {
 	var eReceipt *entity.EngineReceipt
 
 	if err := e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
@@ -431,16 +429,18 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 	}
 
 	from := util.IrohaAccountIDToAddressHex(eReceipt.CreatorID)
-	receipt := web3.Receipt{
-		From:              util.ToEthereumHexString(from),
-		TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
-		TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
-		BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
-		BlockHash:         hexZero,
-		GasUsed:           hexZero,
-		CumulativeGasUsed: hexZero,
-		Logs:              irohaToEthereumTxReceiptLogs(eLogs),
-		LogsBloom:         "",
+	receipt := Receipt{
+		Receipt: web3.Receipt{
+			From:              util.ToEthereumHexString(from),
+			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
+			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
+			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
+			BlockHash:         hexZero,
+			GasUsed:           hexZero,
+			CumulativeGasUsed: hexZero,
+			LogsBloom:         "",
+		},
+		Logs: irohaToEthereumTxReceiptLogs(eLogs),
 	}
 
 	if eReceipt.Status {
@@ -457,7 +457,7 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 		receipt.ContractAddress = util.ToEthereumHexString(eReceipt.CreatedAddress.String)
 	}
 
-	return &web3.EthGetTransactionReceiptResult{
+	return &EthGetTransactionReceiptResult{
 		Receipt: receipt,
 	}, nil
 }
@@ -600,25 +600,25 @@ func (e EthService) EthUninstallFilter(*web3.EthUninstallFilterParams) (*web3.Et
 	return nil, errors.New("implement me")
 }
 
-func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []web3.Logs {
-	ethLogs := make([]web3.Logs, 0, len(logs))
+func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []Logs {
+	ethLogs := make([]Logs, 0, len(logs))
 
 	for i, log := range logs {
-		ethLog := web3.Logs{
-			LogIndex:         util.ToEthereumHexString(fmt.Sprintf("%x", i)),
-			TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
-			TransactionHash:  util.ToEthereumHexString(log.TxHash),
-			Address:          util.ToEthereumHexString(log.Address),
-			BlockHash:        hexZero,
-			BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
-			Data:             util.ToEthereumHexString(log.Data),
-			Topics:           make([]web3.Topics, 0, len(log.Topics)),
+		ethLog := Logs{
+			Logs: web3.Logs{
+				LogIndex:         util.ToEthereumHexString(fmt.Sprintf("%x", i)),
+				TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
+				TransactionHash:  util.ToEthereumHexString(log.TxHash),
+				Address:          util.ToEthereumHexString(log.Address),
+				BlockHash:        hexZero,
+				BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
+				Data:             util.ToEthereumHexString(log.Data),
+			},
+			Topics: make([]string, 0, len(log.Topics)),
 		}
 
 		for _, topic := range log.Topics {
-			ethTopic := web3.Topics{
-				DataWord: util.ToEthereumHexString(topic.Topic),
-			}
+			ethTopic := util.ToEthereumHexString(topic.Topic)
 			ethLog.Topics = append(ethLog.Topics, ethTopic)
 		}
 
