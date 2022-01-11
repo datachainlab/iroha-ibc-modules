@@ -11,7 +11,6 @@ import (
 	"github.com/hyperledger/burrow/logging/logconfig"
 	"github.com/hyperledger/burrow/process"
 	"github.com/hyperledger/burrow/rpc/lib/server"
-	"github.com/hyperledger/burrow/rpc/web3"
 	"google.golang.org/grpc"
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/acm"
@@ -78,16 +77,16 @@ func Serve(cfg *config.Config) error {
 		return err
 	}
 
-	web3Server := web3.NewServer(
-		NewEthService(
-			accountState,
-			keyStore,
-			irohaApiClient,
-			irohaDBTransactor,
-			logger,
-			cfg.EVM.Querier,
-		),
+	ethService := NewEthService(
+		accountState,
+		keyStore,
+		irohaApiClient,
+		irohaDBTransactor,
+		logger,
+		cfg.EVM.Querier,
 	)
+
+	web3Server := NewHTTPServer(ethService)
 
 	srv, err := server.StartHTTPServer(
 		listener,
