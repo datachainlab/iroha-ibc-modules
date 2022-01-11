@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"testing"
@@ -15,6 +16,38 @@ import (
 
 type AccountTestSuite struct {
 	TestSuite
+}
+
+func (suite *AccountTestSuite) TestCreateAccount() {
+	var TestAccountName = suite.AddUnixSuffix("test_account", "_")
+	var TestAccountId = fmt.Sprintf("%s@%s", TestAccountName, DomainId)
+
+	{
+		// create key pair for new account
+		pubKey, privKey, err := suite.CreateKeyPair()
+		suite.Require().NoError(err)
+		suite.T().Logf("pubKey: %s, privKey: %s", pubKey, privKey)
+
+		// create account
+		tx := suite.BuildTransaction(
+			command.CreateAccount(TestAccountName, DomainId, pubKey),
+			AdminAccountId,
+		)
+		suite.SendTransaction(tx, AdminPrivateKey)
+	}
+
+	{
+		// check new account
+		q := query.GetAccount(
+			TestAccountId,
+			query.CreatorAccountId(AdminAccountId),
+		)
+
+		res := suite.SendQuery(q, AdminPrivateKey)
+		acc := res.GetAccountResponse().GetAccount()
+		suite.Require().NotNil(acc)
+	}
+	// Note: no remove account commands
 }
 
 func (suite *AccountTestSuite) TestSetAccountDetail() {

@@ -2,6 +2,11 @@ package e2e
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -62,6 +67,18 @@ func (suite *TestSuite) SendTransaction(tx *pb.Transaction, privKey string) stri
 
 	res, err := suite.CommandClient.TxStatusStream(context.Background(), txHash)
 	suite.Require().NoError(err)
+	suite.Require().Condition(func() bool {
+		if res.ErrorCode != 0 {
+			return false
+		}
+		if res.ErrOrCmdName != "" {
+			return false
+		}
+		if res.FailedCmdIndex != 0 {
+			return false
+		}
+		return true
+	}, "check *pb.ToriiResponse carefully")
 
 	return res.TxHash
 }
@@ -87,4 +104,17 @@ func (suite *TestSuite) SendQueryWithError(query *pb.Query, privKey string) (*pb
 	res, err := suite.QueryClient.SendQuery(context.Background(), query)
 
 	return res, err
+}
+
+func (suite *TestSuite) CreateKeyPair() (string, string, error) {
+	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return "", "", err
+	}
+
+	return hex.EncodeToString(pubKey), hex.EncodeToString(privKey), nil
+}
+
+func (suite *TestSuite) AddUnixSuffix(target, delimiter string) string {
+	return fmt.Sprintf("%s%s%s", target, delimiter, strconv.FormatInt(time.Now().Unix(), 10))
 }
