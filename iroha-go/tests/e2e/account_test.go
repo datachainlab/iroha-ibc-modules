@@ -18,6 +18,8 @@ type AccountTestSuite struct {
 	TestSuite
 }
 
+// TODO: test for CompareAndSetAccountDetail
+
 func (suite *AccountTestSuite) TestCreateAccount() {
 	var TestAccountName = suite.AddUnixSuffix("test_account", "_")
 	var TestAccountId = fmt.Sprintf("%s@%s", TestAccountName, DomainId)
@@ -39,7 +41,6 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 			[]string{hash},
 			query.CreatorAccountId(AdminAccountId),
 		)
-
 		res := suite.SendQuery(q, AdminPrivateKey)
 		txs := res.GetTransactionsResponse().Transactions
 		suite.Require().Condition(func() bool {
@@ -48,6 +49,16 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 			}
 			return true
 		}, "transaction must be more than 0")
+
+		// GetEngineReceipts
+		// TODO: response has no receipts
+		q = query.GetEngineReceipts(
+			hash,
+			query.CreatorAccountId(AdminAccountId),
+		)
+		res = suite.SendQuery(q, AdminPrivateKey)
+		engineReceipts := res.GetEngineReceiptsResponse().EngineReceipts
+		suite.T().Log(engineReceipts)
 	}
 
 	{
