@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -17,6 +18,8 @@ func (suite *PeerTestSuite) TestPeer() {
 	suite.Require().NoError(err)
 	{
 		// add peer
+		// FIXME: after running this command, subsequent commands fail
+		// rpc error: code = DeadlineExceeded desc = Deadline Exceeded
 		tx := suite.BuildTransaction(
 			command.AddPeer(fmt.Sprintf("127.0.0.1:%d", port), pubKey, nil),
 			AdminAccountId,
@@ -25,8 +28,17 @@ func (suite *PeerTestSuite) TestPeer() {
 	}
 
 	{
+		// check peer
+		q := query.GetPeers(
+			query.CreatorAccountId(UserAccountId),
+		)
+		res := suite.SendQuery(q, UserPrivateKey)
+		peers := res.GetPeersResponse().Peers
+		suite.Require().Equal(2, len(peers))
+	}
+
+	{
 		// remove peer
-		// FIXME: rpc error: code = DeadlineExceeded desc = Deadline Exceeded
 		tx := suite.BuildTransaction(
 			command.RemovePeer(pubKey),
 			AdminAccountId,

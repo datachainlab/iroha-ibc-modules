@@ -23,6 +23,10 @@ test-peer: clean-cache
 test-roll: clean-cache
 	go test -race -run TestRoleTestSuiteTestSuite -v ./tests/e2e/...
 
+.PHONY: test-setvalue
+test-setvalue: clean-cache
+	go test -race -run TestSetValueTestSuiteTestSuite -v ./tests/e2e/...
+
 .PHONY: test-signatory
 test-signatory: clean-cache
 	go test -race -run TestSignatoryTestSuiteTestSuite -v ./tests/e2e/...
