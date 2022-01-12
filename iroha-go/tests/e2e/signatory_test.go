@@ -30,11 +30,11 @@ func (suite *SignatoryTestSuite) TestSignatory() {
 		suite.SendTransaction(tx, AdminPrivateKey)
 	}
 
-	var TestSignatoryRoles = suite.AddUnixSuffix("test_signatory", "_")
+	var signatoryRoles = suite.AddUnixSuffix("signatory", "_")
 	{
 		// add rolls `RolePermission_can_add_signatory` to admin
 		tx := suite.BuildTransaction(
-			command.CreateRole(TestSignatoryRoles, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory}),
+			command.CreateRole(signatoryRoles, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory}),
 			//command.CreateRole(TestSignatoryRoles, []pb.RolePermission{pb.RolePermission_can_grant_can_add_my_signatory, pb.RolePermission_can_grant_can_remove_my_signatory}),
 			//command.CreateRole(TestSignatoryRoles, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory, pb.RolePermission_can_grant_can_add_my_signatory, pb.RolePermission_can_grant_can_remove_my_signatory}),
 			AdminAccountId,
@@ -43,7 +43,7 @@ func (suite *SignatoryTestSuite) TestSignatory() {
 
 		// append roles to admin
 		tx = suite.BuildTransaction(
-			command.AppendRole(AdminAccountId, TestSignatoryRoles),
+			command.AppendRole(AdminAccountId, signatoryRoles),
 			AdminAccountId,
 		)
 		suite.SendTransaction(tx, AdminPrivateKey)
