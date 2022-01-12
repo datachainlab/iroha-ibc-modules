@@ -48,6 +48,18 @@ func (suite *RoleTestSuite) TestRole() {
 	}
 
 	{
+		// role permission
+		q := query.GetRolePermissions(
+			TestGetRoles,
+			query.CreatorAccountId(AdminAccountId),
+		)
+		res := suite.SendQuery(q, AdminPrivateKey)
+		permissions := res.GetRolePermissionsResponse().Permissions
+		suite.T().Logf("permissions: %v", permissions)
+		suite.Require().Contains(permissions, pb.RolePermission_can_get_roles)
+	}
+
+	{
 		// check current role
 		q := query.GetRoles(
 			query.CreatorAccountId(AdminAccountId),

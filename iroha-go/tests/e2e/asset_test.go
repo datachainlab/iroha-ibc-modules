@@ -40,28 +40,44 @@ func (suite *AssetTestSuite) TestAsset() {
 		suite.NoError(err)
 	}
 
-	// AddAssetQuantity
-	tx := suite.BuildTransaction(
-		command.AddAssetQuantity(AssetId, strconv.FormatFloat(amount, 'f', int(precision), 64)),
-		AdminAccountId,
-	)
+	{
+		// AddAssetQuantity
+		tx := suite.BuildTransaction(
+			command.AddAssetQuantity(AssetId, strconv.FormatFloat(amount, 'f', int(precision), 64)),
+			AdminAccountId,
+		)
 
-	suite.SendTransaction(tx, AdminPrivateKey)
+		suite.SendTransaction(tx, AdminPrivateKey)
+	}
 
-	q := query.GetAccountAsset(
-		AdminAccountId,
-		&pb.AssetPaginationMeta{
-			PageSize:        math.MaxUint32,
-			OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: AssetId},
-		},
-		query.CreatorAccountId(AdminAccountId),
-	)
+	{
+		q := query.GetAccountAsset(
+			AdminAccountId,
+			&pb.AssetPaginationMeta{
+				PageSize:        math.MaxUint32,
+				OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: AssetId},
+			},
+			query.CreatorAccountId(AdminAccountId),
+		)
 
-	res := suite.SendQuery(q, AdminPrivateKey)
-	assets = res.GetAccountAssetsResponse().AccountAssets
-	suite.Equal(assets[0].AssetId, AssetId)
-	suite.Equal(assets[0].Balance, strconv.FormatFloat(balance+amount, 'f', int(precision), 64))
+		res := suite.SendQuery(q, AdminPrivateKey)
+		assets = res.GetAccountAssetsResponse().AccountAssets
+		suite.Equal(assets[0].AssetId, AssetId)
+		suite.Equal(assets[0].Balance, strconv.FormatFloat(balance+amount, 'f', int(precision), 64))
+	}
 
+	{
+		q := query.GetAssetInfo(
+			AssetId,
+			query.CreatorAccountId(AdminAccountId),
+		)
+		res := suite.SendQuery(q, AdminPrivateKey)
+		asset := res.GetAssetResponse().Asset
+		suite.T().Logf("asset: %v", asset)
+		suite.Equal(asset.AssetId, AssetId)
+		suite.Equal(asset.DomainId, DomainId)
+		suite.Equal(asset.Precision, precision)
+	}
 }
 
 func (suite *AssetTestSuite) getAccountAsset() []*pb.AccountAsset {

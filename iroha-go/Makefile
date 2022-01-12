@@ -19,8 +19,8 @@ test-domain: clean-cache
 test-peer: clean-cache
 	go test -race -run TestPeerTestSuiteTestSuite -v ./tests/e2e/...
 
-.PHONY: test-roll
-test-roll: clean-cache
+.PHONY: test-role
+test-role: clean-cache
 	go test -race -run TestRoleTestSuiteTestSuite -v ./tests/e2e/...
 
 .PHONY: test-setvalue
