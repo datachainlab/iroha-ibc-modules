@@ -32,7 +32,22 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 			command.CreateAccount(TestAccountName, DomainId, pubKey),
 			AdminAccountId,
 		)
-		suite.SendTransaction(tx, AdminPrivateKey)
+		hash := suite.SendTransaction(tx, AdminPrivateKey)
+
+		// check transaction by hash
+		q := query.GetTransactions(
+			[]string{hash},
+			query.CreatorAccountId(AdminAccountId),
+		)
+
+		res := suite.SendQuery(q, AdminPrivateKey)
+		txs := res.GetTransactionsResponse().Transactions
+		suite.Require().Condition(func() bool {
+			if len(txs) == 0 {
+				return false
+			}
+			return true
+		}, "transaction must be more than 0")
 	}
 
 	{
@@ -45,6 +60,23 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 		res := suite.SendQuery(q, AdminPrivateKey)
 		acc := res.GetAccountResponse().GetAccount()
 		suite.Require().NotNil(acc)
+	}
+
+	{
+		q := query.GetAccountTransactions(
+			AdminAccountId,
+			&pb.TxPaginationMeta{PageSize: math.MaxUint32},
+			query.CreatorAccountId(AdminAccountId),
+		)
+
+		res := suite.SendQuery(q, AdminPrivateKey)
+		txs := res.GetTransactionsPageResponse().Transactions
+		suite.Require().Condition(func() bool {
+			if len(txs) == 0 {
+				return false
+			}
+			return true
+		}, "transaction must be more than 0")
 	}
 	// Note: no remove account commands
 }

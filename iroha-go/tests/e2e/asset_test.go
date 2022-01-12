@@ -66,6 +66,26 @@ func (suite *AssetTestSuite) TestAsset() {
 		suite.Equal(assets[0].Balance, strconv.FormatFloat(balance+amount, 'f', int(precision), 64))
 	}
 
+	// FIXME: no transaction for now
+	{
+		q := query.GetAccountAssetTransactions(
+			AdminAccountId,
+			AssetId,
+			&pb.TxPaginationMeta{PageSize: math.MaxUint32},
+			query.CreatorAccountId(AdminAccountId),
+		)
+
+		res := suite.SendQuery(q, AdminPrivateKey)
+		suite.T().Log(res)
+		txs := res.GetTransactionsPageResponse().Transactions
+		suite.Require().Condition(func() bool {
+			if len(txs) == 0 {
+				return false
+			}
+			return true
+		}, "transaction must be more than 0")
+	}
+
 	{
 		q := query.GetAssetInfo(
 			AssetId,
