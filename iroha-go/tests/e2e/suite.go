@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"google.golang.org/grpc/credentials/insecure"
+	mathrand "math/rand"
 	"strconv"
 	"time"
 
@@ -36,7 +38,7 @@ type TestSuite struct {
 func (suite *TestSuite) SetupTest() {
 	conn, err := grpc.Dial(
 		ToriiAddress,
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 	suite.NoError(err)
@@ -115,4 +117,9 @@ func (suite *TestSuite) CreateKeyPair() (string, string, error) {
 
 func (suite *TestSuite) AddUnixSuffix(target, delimiter string) string {
 	return fmt.Sprintf("%s%s%s", target, delimiter, strconv.FormatInt(time.Now().Unix(), 10))
+}
+
+func (suite *TestSuite) RandInt(min int, max int) int {
+	mathrand.Seed(time.Now().UTC().UnixNano())
+	return min + mathrand.Intn(max-min)
 }

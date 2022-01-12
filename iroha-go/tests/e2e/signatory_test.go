@@ -16,6 +16,7 @@ type SignatoryTestSuite struct {
 func (suite *SignatoryTestSuite) TestSignatory() {
 	var TestAccountName = suite.AddUnixSuffix("test_signatory", "_")
 	pubKey, privKey, err := suite.CreateKeyPair()
+	suite.Require().NoError(err)
 	{
 		// create key pair for new account
 		suite.Require().NoError(err)
