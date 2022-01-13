@@ -13,6 +13,10 @@ type PermissionTestSuite struct {
 }
 
 func (suite *PermissionTestSuite) TestPermission() {
+	var roleName = suite.AddUnixSuffix("grant_detail", "_")
+	suite.CreateRole(roleName, []pb.RolePermission{pb.RolePermission_can_grant_can_set_my_account_detail})
+	suite.AppendRole(AdminAccountId, roleName)
+
 	suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_account_detail, UserAccountId, UserPrivateKey)
 	suite.RevokePermission(AdminAccountId, pb.GrantablePermission_can_set_my_account_detail, UserAccountId, UserPrivateKey)
 }

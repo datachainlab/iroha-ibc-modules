@@ -57,12 +57,33 @@ func (suite *TestSuite) BuildTransaction(cmd *pb.Command, accountID string) *pb.
 	)
 }
 
+func (suite *TestSuite) BuildTransactionWithQuorum(cmd *pb.Command, accountID string, quorum uint32) *pb.Transaction {
+	return command.BuildTransaction(
+		command.BuildPayload(
+			[]*pb.Command{cmd},
+			command.CreatorAccountId(accountID),
+			command.Quorum(quorum),
+		),
+	)
+}
+
 func (suite *TestSuite) SendTransaction(tx *pb.Transaction, privKey string) string {
 	sig, err := crypto.SignTransaction(tx, privKey)
 	suite.Require().NoError(err)
-
 	tx.Signatures = sig
 
+	return suite.sendTransaction(tx)
+}
+
+func (suite *TestSuite) SendTransactions(tx *pb.Transaction, privKeys ...string) string {
+	sig, err := crypto.SignTransaction(tx, privKeys...)
+	suite.Require().NoError(err)
+	tx.Signatures = sig
+
+	return suite.sendTransaction(tx)
+}
+
+func (suite *TestSuite) sendTransaction(tx *pb.Transaction) string {
 	txHash, err := suite.CommandClient.SendTransaction(context.Background(), tx)
 	suite.Require().NoError(err)
 

@@ -69,22 +69,47 @@ func (suite *AccountTestSuite) TestSetAccountQuorum() {
 	// Scenario1: user call `SetAccountQuorum` to user itself
 	suite.AppendRole(UserAccountId, signatoryRoleName)
 	{
-		pubKey, _ := suite.CreateKeyPair()
+		// add account
+		var accountName = suite.AddUnixSuffix("test_account", "_")
+		//var accountId = fmt.Sprintf("%s@%s", accountName, DomainId)
+		pubKey, privKey := suite.CreateKeyPair()
+		suite.CreateAccount(accountName, pubKey)
+
 		suite.AddSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 
 		keys := suite.GetSignatory(UserAccountId)
-		suite.setAccountQuorum(UserAccountId, uint32(len(keys)), UserAccountId, UserPrivateKey)
+		quorum := uint32(len(keys))
+		suite.setAccountQuorum(UserAccountId, quorum, UserAccountId, UserPrivateKey)
+
+		// revert condition
+		multiSig := MultiSigInfo{
+			Quorum:          quorum,
+			AccountId:       UserAccountId,
+			AccountPrivKeys: []string{UserPrivateKey, privKey},
+		}
+		suite.setAccountQuorumWithMultiSig(UserAccountId, quorum-1, &multiSig)
+		suite.RemoveSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 	}
 
 	// Scenario2: admin call `SetAccountQuorum` to user
 	suite.AppendRole(UserAccountId, grantSetMyQuorumRole)
 	suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
 	{
-		pubKey, _ := suite.CreateKeyPair()
+		pubKey, privKey := suite.CreateKeyPair()
 		suite.AddSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 
 		keys := suite.GetSignatory(UserAccountId)
-		suite.setAccountQuorum(UserAccountId, uint32(len(keys)), AdminAccountId, AdminPrivateKey)
+		quorum := uint32(len(keys))
+		suite.setAccountQuorum(UserAccountId, quorum, AdminAccountId, AdminPrivateKey)
+
+		// revert condition
+		multiSig := MultiSigInfo{
+			Quorum:          quorum,
+			AccountId:       UserAccountId,
+			AccountPrivKeys: []string{UserPrivateKey, privKey},
+		}
+		suite.setAccountQuorumWithMultiSig(UserAccountId, quorum-1, &multiSig)
+		suite.RemoveSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 	}
 }
 
@@ -152,6 +177,21 @@ func (suite *AccountTestSuite) setAccountQuorum(targetAccountId string, quorum u
 		byAccountId,
 	)
 	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+type MultiSigInfo struct {
+	Quorum          uint32
+	AccountId       string
+	AccountPrivKeys []string
+}
+
+func (suite *AccountTestSuite) setAccountQuorumWithMultiSig(targetAccountId string, quorum uint32, multiSig *MultiSigInfo) string {
+	tx := suite.BuildTransactionWithQuorum(
+		command.SetAccountQuorum(targetAccountId, quorum),
+		multiSig.AccountId,
+		multiSig.Quorum,
+	)
+	return suite.SendTransactions(tx, multiSig.AccountPrivKeys...)
 }
 
 func TestAccountTestSuiteTestSuite(t *testing.T) {
