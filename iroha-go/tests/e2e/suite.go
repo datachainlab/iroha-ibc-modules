@@ -148,6 +148,33 @@ func (suite *TestSuite) AppendRole(targetAccountId, roleName string) string {
 	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
+func (suite *TestSuite) DetachRole(targetAccountId, roleName string) string {
+	tx := suite.BuildTransaction(
+		command.DetachRole(targetAccountId, roleName),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) GetRoles(targetAccountId, targetAccountPrivKey string) []string {
+	// check current role first
+	q := query.GetRoles(
+		query.CreatorAccountId(targetAccountId),
+	)
+	res := suite.SendQuery(q, targetAccountPrivKey)
+	return res.GetRolesResponse().Roles
+	// roles would like `admin, user, money_creator, evm_admin, gateway_querier`
+}
+
+func (suite *TestSuite) GetRolePermissions(roleName string) []pb.RolePermission {
+	q := query.GetRolePermissions(
+		roleName,
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetRolePermissionsResponse().Permissions
+}
+
 func (suite *TestSuite) AddSignatory(targetAccountId, pubKey string) string {
 	tx := suite.BuildTransaction(
 		command.AddSignatory(targetAccountId, pubKey),
