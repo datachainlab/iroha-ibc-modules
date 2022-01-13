@@ -4,6 +4,7 @@ on:
     paths:
       - "docker/**"
       - "iroha-go/**"
+      - ".github/workflows/test.yml"
 
 jobs:
   extension-test:
