@@ -2,6 +2,9 @@ package e2e
 
 import (
 	"fmt"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -20,13 +23,37 @@ func (suite *PeerTestSuite) TestPeer() {
 		// add peer
 		// FIXME: after running this command, subsequent commands fail
 		// rpc error: code = DeadlineExceeded desc = Deadline Exceeded
-		suite.AddPeer(address, pubKey)
+		suite.addPeer(address, pubKey)
 
-		peers := suite.GetPeers()
+		peers := suite.getPeers()
 		suite.Require().Equal(2, len(peers))
 
-		suite.RemovePeer(pubKey)
+		suite.removePeer(pubKey)
 	}
+}
+
+func (suite *PeerTestSuite) addPeer(address, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.AddPeer(address, pubKey, nil),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *PeerTestSuite) getPeers() []*pb.Peer {
+	q := query.GetPeers(
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetPeersResponse().Peers
+}
+
+func (suite *PeerTestSuite) removePeer(pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.RemovePeer(pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
 func TestPeerTestSuiteTestSuite(t *testing.T) {

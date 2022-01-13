@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
 	"math"
 	"strconv"
 	"strings"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
 	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 )
@@ -23,76 +23,40 @@ func (suite *AssetTestSuite) TestAsset() {
 		amount    float64 = 100.50
 		balance   float64 = 0
 		precision uint32  = 2
+		assetName         = strings.Split(AssetId, "#")[0]
 	)
 
 	assets := suite.getAccountAsset()
 
 	// CreateAsset if not exists
 	if len(assets) == 0 {
-		tx := suite.BuildTransaction(
-			command.CreateAsset(strings.Split(AssetId, "#")[0], DomainId, precision),
-			AdminAccountId,
-		)
-
-		suite.SendTransaction(tx, AdminPrivateKey)
+		suite.createAsset(assetName, DomainId, precision)
 	} else {
 		balance, err = strconv.ParseFloat(assets[0].Balance, 64)
 		suite.NoError(err)
 	}
 
-	{
-		// AddAssetQuantity
-		tx := suite.BuildTransaction(
-			command.AddAssetQuantity(AssetId, strconv.FormatFloat(amount, 'f', int(precision), 64)),
-			AdminAccountId,
-		)
-
-		suite.SendTransaction(tx, AdminPrivateKey)
-	}
+	suite.addAssetQuantity(AssetId, strconv.FormatFloat(amount, 'f', int(precision), 64))
 
 	{
-		q := query.GetAccountAsset(
-			AdminAccountId,
-			&pb.AssetPaginationMeta{
-				PageSize:        math.MaxUint32,
-				OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: AssetId},
-			},
-			query.CreatorAccountId(AdminAccountId),
-		)
-
-		res := suite.SendQuery(q, AdminPrivateKey)
-		assets = res.GetAccountAssetsResponse().AccountAssets
+		assets := suite.getAccountAssetFor(AssetId, AdminAccountId)
 		suite.Equal(assets[0].AssetId, AssetId)
 		suite.Equal(assets[0].Balance, strconv.FormatFloat(balance+amount, 'f', int(precision), 64))
 	}
 
 	// FIXME: no transaction for now
 	{
-		q := query.GetAccountAssetTransactions(
-			AdminAccountId,
-			AssetId,
-			&pb.TxPaginationMeta{PageSize: math.MaxUint32},
-			query.CreatorAccountId(AdminAccountId),
-		)
-
-		res := suite.SendQuery(q, AdminPrivateKey)
-		suite.T().Log(res)
-		txs := res.GetTransactionsPageResponse().Transactions
-		suite.Require().Condition(func() bool {
-			if len(txs) == 0 {
-				return false
-			}
-			return true
-		}, "transaction must be more than 0")
+		suite.getAccountAssetTransactions(AssetId, AdminAccountId)
+		//suite.Require().Condition(func() bool {
+		//	if len(txs) == 0 {
+		//		return false
+		//	}
+		//	return true
+		//}, "transaction must be more than 0")
 	}
 
 	{
-		q := query.GetAssetInfo(
-			AssetId,
-			query.CreatorAccountId(AdminAccountId),
-		)
-		res := suite.SendQuery(q, AdminPrivateKey)
-		asset := res.GetAssetResponse().Asset
+		asset := suite.getAssetInfo(AssetId)
 		suite.T().Logf("asset: %v", asset)
 		suite.Equal(asset.AssetId, AssetId)
 		suite.Equal(asset.DomainId, DomainId)
@@ -116,6 +80,56 @@ func (suite *AssetTestSuite) getAccountAsset() []*pb.AccountAsset {
 	}
 
 	return res.GetAccountAssetsResponse().AccountAssets
+}
+
+func (suite *AssetTestSuite) getAccountAssetFor(assetId string, targetAccountId string) []*pb.AccountAsset {
+	q := query.GetAccountAsset(
+		targetAccountId,
+		&pb.AssetPaginationMeta{
+			PageSize:        math.MaxUint32,
+			OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: assetId},
+		},
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetAccountAssetsResponse().AccountAssets
+}
+
+func (suite *AssetTestSuite) getAccountAssetTransactions(assetId string, targetAccountId string) []*pb.Transaction {
+	q := query.GetAccountAssetTransactions(
+		targetAccountId,
+		assetId,
+		&pb.TxPaginationMeta{PageSize: math.MaxUint32},
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetTransactionsPageResponse().Transactions
+}
+
+func (suite *AssetTestSuite) getAssetInfo(assetId string) *pb.Asset {
+	q := query.GetAssetInfo(
+		assetId,
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetAssetResponse().Asset
+}
+
+func (suite *AssetTestSuite) createAsset(assetName, domainID string, precision uint32) string {
+	tx := suite.BuildTransaction(
+		command.CreateAsset(assetName, domainID, precision),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *AssetTestSuite) addAssetQuantity(assetID, amount string) string {
+	tx := suite.BuildTransaction(
+		command.AddAssetQuantity(assetID, amount),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
 func TestAssetTestSuite(t *testing.T) {

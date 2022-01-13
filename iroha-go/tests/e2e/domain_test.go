@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -14,9 +15,17 @@ func (suite *DomainTestSuite) TestDomain() {
 	var domainId = suite.AddUnixSuffix("testdomain", "")
 	{
 		// create domain
-		suite.CreateDomain("admin", domainId)
+		suite.createDomain("admin", domainId)
 	}
 	// Note: no remove domain commands
+}
+
+func (suite *DomainTestSuite) createDomain(defaultRole, domainId string) string {
+	tx := suite.BuildTransaction(
+		command.CreateDomain(defaultRole, domainId),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
 func TestDomainTestSuiteTestSuite(t *testing.T) {
