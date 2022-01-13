@@ -60,11 +60,9 @@ func (suite *AccountTestSuite) TestSetAccountDetail() {
 
 func (suite *AccountTestSuite) TestSetAccountQuorum() {
 	var (
-		setQuorumRole        = suite.AddUnixSuffix("set_quorum", "_")
 		grantSetMyQuorumRole = suite.AddUnixSuffix("grant_set_my_quorum", "_")
 		signatoryRoleName    = suite.AddUnixSuffix("signatory", "_")
 	)
-	suite.CreateRole(setQuorumRole, []pb.RolePermission{pb.RolePermission_can_set_quorum})
 	suite.CreateRole(grantSetMyQuorumRole, []pb.RolePermission{pb.RolePermission_can_grant_can_set_my_quorum})
 	suite.CreateRole(signatoryRoleName, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory})
 
@@ -78,16 +76,7 @@ func (suite *AccountTestSuite) TestSetAccountQuorum() {
 		suite.setAccountQuorum(UserAccountId, uint32(len(keys)), UserAccountId, UserPrivateKey)
 	}
 
-	// Scenario2: admin call `SetAccountQuorum` to admin itself
-	{
-		pubKey, _ := suite.CreateKeyPair()
-		suite.AddSignatory(AdminAccountId, pubKey, AdminAccountId, AdminPrivateKey)
-
-		keys := suite.GetSignatory(AdminAccountId)
-		suite.setAccountQuorum(AdminAccountId, uint32(len(keys)), AdminAccountId, AdminPrivateKey)
-	}
-
-	// Scenario3: admin call `SetAccountQuorum` to user
+	// Scenario2: admin call `SetAccountQuorum` to user
 	suite.AppendRole(UserAccountId, grantSetMyQuorumRole)
 	suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
 	{
