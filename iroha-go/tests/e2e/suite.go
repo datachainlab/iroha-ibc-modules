@@ -217,3 +217,27 @@ func (suite *TestSuite) GetSignatory(targetAccountId string) []string {
 	res := suite.SendQuery(q, AdminPrivateKey)
 	return res.GetSignatoriesResponse().GetKeys()
 }
+
+func (suite *TestSuite) AddPeer(address, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.AddPeer(address, pubKey, nil),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) GetPeers() []*pb.Peer {
+	q := query.GetPeers(
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetPeersResponse().Peers
+}
+
+func (suite *TestSuite) RemovePeer(pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.RemovePeer(pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
