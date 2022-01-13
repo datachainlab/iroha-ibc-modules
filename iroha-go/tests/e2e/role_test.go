@@ -1,8 +1,9 @@
 package e2e
 
 import (
-	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"testing"
+
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 
 	"github.com/stretchr/testify/suite"
 

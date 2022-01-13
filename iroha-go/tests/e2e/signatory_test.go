@@ -1,8 +1,9 @@
 package e2e
 
 import (
-	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 	"testing"
+
+	pb "github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
 
 	"github.com/stretchr/testify/suite"
 )

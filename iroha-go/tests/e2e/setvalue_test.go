@@ -1,9 +1,10 @@
 package e2e
 
 import (
+	"testing"
+
 	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type SetValueTestSuite struct {

@@ -1,4 +1,8 @@
 
+.PHONY: goimports
+goimports:
+	goimports -w *.go
+
 .PHONY: test-all
 test-all: clean-cache
 	go test -race -v ./tests/e2e/...

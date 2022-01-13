@@ -206,6 +206,32 @@ func (suite *AccountTestSuite) TestSetAccountQuorum() {
 		//suite.SendTransaction(tx, AdminPrivateKey)
 	}
 
+	// try admin
+	{
+		// append roles to user
+		tx := suite.BuildTransaction(
+			command.AppendRole(AdminAccountId, signatoryRoles),
+			AdminAccountId,
+		)
+		suite.SendTransaction(tx, AdminPrivateKey)
+
+		pubKey, _, err := suite.CreateKeyPair()
+		suite.Require().NoError(err)
+		// add signatory to user account by user account
+		tx = suite.BuildTransaction(
+			command.AddSignatory(AdminAccountId, pubKey),
+			AdminAccountId,
+		)
+		suite.SendTransaction(tx, AdminPrivateKey)
+
+		tx = suite.BuildTransaction(
+			command.SetAccountQuorum(AdminAccountId, 2),
+			AdminAccountId,
+		)
+		// FIXME: error `encoding/hex: invalid byte: U+006D 'm'`
+		suite.SendTransaction(tx, AdminAccountId)
+	}
+
 	//q := query.GetAccount(
 	//	UserAccountId,
 	//	query.CreatorAccountId(AdminAccountId),

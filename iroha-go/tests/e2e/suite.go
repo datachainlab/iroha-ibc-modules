@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	mathrand "math/rand"
 	"strconv"
 	"time"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
