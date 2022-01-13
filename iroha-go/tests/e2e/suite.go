@@ -2,7 +2,13 @@ package e2e
 
 import (
 	"context"
+	"crypto/rand"
+	"fmt"
+	mathrand "math/rand"
+	"strconv"
 	"time"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
@@ -33,7 +39,7 @@ type TestSuite struct {
 func (suite *TestSuite) SetupTest() {
 	conn, err := grpc.Dial(
 		ToriiAddress,
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 	suite.NoError(err)
@@ -51,17 +57,50 @@ func (suite *TestSuite) BuildTransaction(cmd *pb.Command, accountID string) *pb.
 	)
 }
 
+func (suite *TestSuite) BuildTransactionWithQuorum(cmd *pb.Command, accountID string, quorum uint32) *pb.Transaction {
+	return command.BuildTransaction(
+		command.BuildPayload(
+			[]*pb.Command{cmd},
+			command.CreatorAccountId(accountID),
+			command.Quorum(quorum),
+		),
+	)
+}
+
 func (suite *TestSuite) SendTransaction(tx *pb.Transaction, privKey string) string {
 	sig, err := crypto.SignTransaction(tx, privKey)
 	suite.Require().NoError(err)
-
 	tx.Signatures = sig
 
+	return suite.sendTransaction(tx)
+}
+
+func (suite *TestSuite) SendTransactions(tx *pb.Transaction, privKeys ...string) string {
+	sig, err := crypto.SignTransaction(tx, privKeys...)
+	suite.Require().NoError(err)
+	tx.Signatures = sig
+
+	return suite.sendTransaction(tx)
+}
+
+func (suite *TestSuite) sendTransaction(tx *pb.Transaction) string {
 	txHash, err := suite.CommandClient.SendTransaction(context.Background(), tx)
 	suite.Require().NoError(err)
 
 	res, err := suite.CommandClient.TxStatusStream(context.Background(), txHash)
 	suite.Require().NoError(err)
+	suite.Require().Condition(func() bool {
+		if res.ErrorCode != 0 {
+			return false
+		}
+		if res.ErrOrCmdName != "" {
+			return false
+		}
+		if res.FailedCmdIndex != 0 {
+			return false
+		}
+		return true
+	}, "check *pb.ToriiResponse carefully")
 
 	return res.TxHash
 }
@@ -87,4 +126,114 @@ func (suite *TestSuite) SendQueryWithError(query *pb.Query, privKey string) (*pb
 	res, err := suite.QueryClient.SendQuery(context.Background(), query)
 
 	return res, err
+}
+
+func (suite *TestSuite) CreateKeyPair() (string, string) {
+	pubKey, privKey, err := crypto.GenerateKey(rand.Reader)
+	suite.Require().NoError(err)
+
+	return pubKey.Hex(), privKey.Hex()
+}
+
+func (suite *TestSuite) AddUnixSuffix(target, delimiter string) string {
+	return fmt.Sprintf("%s%s%s", target, delimiter, strconv.FormatInt(time.Now().Unix(), 10))
+}
+
+func (suite *TestSuite) RandInt(min int, max int) int {
+	mathrand.Seed(time.Now().UTC().UnixNano())
+	return min + mathrand.Intn(max-min)
+}
+
+func (suite *TestSuite) CreateAccount(accountName, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.CreateAccount(accountName, DomainId, pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) CreateRole(roleName string, permissions []pb.RolePermission) string {
+	tx := suite.BuildTransaction(
+		command.CreateRole(roleName, permissions),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) AppendRole(targetAccountId, roleName string) string {
+	tx := suite.BuildTransaction(
+		command.AppendRole(targetAccountId, roleName),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) DetachRole(targetAccountId, roleName string) string {
+	tx := suite.BuildTransaction(
+		command.DetachRole(targetAccountId, roleName),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) GetRoles(byAccountId, byAccountPrivKey string) []string {
+	// check current role first
+	q := query.GetRoles(
+		query.CreatorAccountId(byAccountId),
+	)
+	res := suite.SendQuery(q, byAccountPrivKey)
+	return res.GetRolesResponse().Roles
+	// roles would like `admin, user, money_creator, evm_admin, gateway_querier`
+}
+
+func (suite *TestSuite) GetRolePermissions(roleName string) []pb.RolePermission {
+	q := query.GetRolePermissions(
+		roleName,
+		query.CreatorAccountId(AdminAccountId),
+	)
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetRolePermissionsResponse().Permissions
+}
+
+func (suite *TestSuite) GrantPermission(toUserAccountId string, permission pb.GrantablePermission, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.GrantPermission(toUserAccountId, permission),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+func (suite *TestSuite) RevokePermission(fromUserAccountId string, permission pb.GrantablePermission, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.RevokePermission(fromUserAccountId, permission),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+func (suite *TestSuite) AddSignatory(targetAccountId, pubKey, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.AddSignatory(targetAccountId, pubKey),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+func (suite *TestSuite) RemoveSignatory(targetAccountId, pubKey, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.RemoveSignatory(targetAccountId, pubKey),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+// GetSignatory gets signatory, and returns keys
+func (suite *TestSuite) GetSignatory(targetAccountId string) []string {
+	q := query.GetSignatories(
+		targetAccountId,
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetSignatoriesResponse().GetKeys()
 }
