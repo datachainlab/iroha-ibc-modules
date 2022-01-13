@@ -29,6 +29,6 @@ func (suite *DomainTestSuite) TestGetEngineReceipts() {
 	}
 }
 
-func TestOthersTestSuiteTestSuite(t *testing.T) {
+func TestOthersTestSuite(t *testing.T) {
 	suite.Run(t, new(OthersTestSuite))
 }

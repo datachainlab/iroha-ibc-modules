@@ -28,6 +28,6 @@ func (suite *DomainTestSuite) createDomain(defaultRole, domainId string) string 
 	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
-func TestDomainTestSuiteTestSuite(t *testing.T) {
+func TestDomainTestSuite(t *testing.T) {
 	suite.Run(t, new(DomainTestSuite))
 }

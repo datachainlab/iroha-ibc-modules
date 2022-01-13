@@ -26,7 +26,7 @@ func (suite *AssetTestSuite) TestAsset() {
 		assetName         = strings.Split(AssetId, "#")[0]
 	)
 
-	assets := suite.getAccountAsset()
+	assets := suite.getAccountAssetWithError(AssetId, AdminAccountId)
 
 	// createAsset if not exists
 	if len(assets) == 0 {
@@ -39,20 +39,15 @@ func (suite *AssetTestSuite) TestAsset() {
 	suite.addAssetQuantity(AssetId, strconv.FormatFloat(amount, 'f', int(precision), 64))
 
 	{
-		assets := suite.getAccountAssetFor(AssetId, AdminAccountId)
+		assets := suite.getAccountAsset(AssetId, AdminAccountId)
 		suite.Equal(assets[0].AssetId, AssetId)
 		suite.Equal(assets[0].Balance, strconv.FormatFloat(balance+amount, 'f', int(precision), 64))
 	}
 
-	// FIXME: no transaction for now
 	{
+		// FIXME: no transaction for now
+		// - how can account asset transactions be retrieved?
 		suite.getAccountAssetTransactions(AssetId, AdminAccountId)
-		//suite.Require().Condition(func() bool {
-		//	if len(txs) == 0 {
-		//		return false
-		//	}
-		//	return true
-		//}, "transaction must be more than 0")
 	}
 
 	{
@@ -64,25 +59,28 @@ func (suite *AssetTestSuite) TestAsset() {
 	}
 }
 
-func (suite *AssetTestSuite) getAccountAsset() []*pb.AccountAsset {
+func (suite *AssetTestSuite) getAccountAssetWithError(assetId string, targetAccountId string) []*pb.AccountAsset {
 	q := query.GetAccountAsset(
-		AdminAccountId,
+		targetAccountId,
 		&pb.AssetPaginationMeta{
 			PageSize:        math.MaxUint32,
-			OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: AssetId},
+			OptFirstAssetId: &pb.AssetPaginationMeta_FirstAssetId{FirstAssetId: assetId},
 		},
 		query.CreatorAccountId(AdminAccountId),
 	)
 
 	res, err := suite.SendQueryWithError(q, AdminPrivateKey)
 	if err != nil {
+		if strings.Contains(err.Error(), "error_code:4") {
+			return nil
+		}
+		suite.NoError(err)
 		return nil
 	}
-
 	return res.GetAccountAssetsResponse().AccountAssets
 }
 
-func (suite *AssetTestSuite) getAccountAssetFor(assetId string, targetAccountId string) []*pb.AccountAsset {
+func (suite *AssetTestSuite) getAccountAsset(assetId string, targetAccountId string) []*pb.AccountAsset {
 	q := query.GetAccountAsset(
 		targetAccountId,
 		&pb.AssetPaginationMeta{

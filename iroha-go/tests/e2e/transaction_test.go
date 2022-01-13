@@ -37,6 +37,6 @@ func (suite *DomainTestSuite) getTransaction(hash string) []*pb.Transaction {
 	return res.GetTransactionsResponse().Transactions
 }
 
-func TestTransactionTestSuiteTestSuite(t *testing.T) {
+func TestTransactionTestSuite(t *testing.T) {
 	suite.Run(t, new(TransactionTestSuite))
 }

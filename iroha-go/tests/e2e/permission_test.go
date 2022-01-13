@@ -21,6 +21,6 @@ func (suite *PermissionTestSuite) TestPermission() {
 	suite.RevokePermission(AdminAccountId, pb.GrantablePermission_can_set_my_account_detail, UserAccountId, UserPrivateKey)
 }
 
-func TestPermissionTestSuiteTestSuite(t *testing.T) {
+func TestPermissionTestSuite(t *testing.T) {
 	suite.Run(t, new(PermissionTestSuite))
 }

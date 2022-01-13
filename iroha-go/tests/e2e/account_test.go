@@ -21,7 +21,6 @@ type AccountTestSuite struct {
 // TODO: test for CompareAndSetAccountDetail
 
 func (suite *AccountTestSuite) TestCreateAccount() {
-	//suite.T().SkipNow()
 	var accountName = suite.AddUnixSuffix("test_account", "_")
 	var accountId = fmt.Sprintf("%s@%s", accountName, DomainId)
 	pubKey, _ := suite.CreateKeyPair()
@@ -44,7 +43,6 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 }
 
 func (suite *AccountTestSuite) TestSetAccountDetail() {
-	//suite.T().SkipNow()
 	var (
 		key   = suite.randStringRunes(10)
 		value = suite.randStringRunes(10)
@@ -93,8 +91,11 @@ func (suite *AccountTestSuite) TestSetAccountQuorum() {
 
 	// Scenario2: admin call `SetAccountQuorum` to user
 	suite.AppendRole(UserAccountId, grantSetMyQuorumRole)
-	suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
 	{
+		// FIXME: if same test runs twice, error happens
+		// - tx_status:REJECTED  tx_hash:"d6996039f71366f446d870893804f877a2b88ad9bf4a240af89c57d680bbf09f"
+		suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
+
 		pubKey, privKey := suite.CreateKeyPair()
 		suite.AddSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 
@@ -110,6 +111,7 @@ func (suite *AccountTestSuite) TestSetAccountQuorum() {
 		}
 		suite.setAccountQuorumWithMultiSig(UserAccountId, quorum-1, &multiSig)
 		suite.RemoveSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
+		suite.RevokePermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
 	}
 }
 
@@ -155,8 +157,8 @@ func (suite *AccountTestSuite) setAccountDetail(targetAccountId, key, value stri
 }
 
 func (suite *AccountTestSuite) getAccountDetail(targetAccountId, key string) string {
-	// below error
-	// - Transaction deserialization failed: hash Hash: [c7aeb854bcca94c70dca7f1182a99287f6248a548a16c57063f8e496150cdc91], SignedData: [Child errors=[Transaction: [Child errors=[Command #1: [Child errors=[AppendRole: [Child errors=[AccountId: [Errors=[passed value: 'f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70' does not match regex '[a-z_0-9]{1,32}\@([a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?'.]]]]]]]]]]
+	// FIXME below error
+	// - message:"SignedData: [Child errors=[Signatures list: [Child errors=[Signature #1 (Signature: [publicKey=313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910, signedData=754639601154dca07ede7b3a30a53c61eecb4ad93f2a44b6a2739b6333ccd91affcfa875b52b9e1c51bc1ed8105ae9e40069e9717ddfd0977924b5b4d1cbcb05]): [Errors=[Bad signature.]]]]]]"
 	// - paginationMeta is replaced by nil to avoid the error for now. but it must be fixed
 	q := query.GetAccountDetail(
 		&pb.GetAccountDetail_AccountId{AccountId: targetAccountId},
@@ -194,6 +196,6 @@ func (suite *AccountTestSuite) setAccountQuorumWithMultiSig(targetAccountId stri
 	return suite.SendTransactions(tx, multiSig.AccountPrivKeys...)
 }
 
-func TestAccountTestSuiteTestSuite(t *testing.T) {
+func TestAccountTestSuite(t *testing.T) {
 	suite.Run(t, new(AccountTestSuite))
 }

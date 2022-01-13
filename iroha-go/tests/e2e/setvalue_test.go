@@ -27,7 +27,7 @@ func (suite *SetValueTestSuite) TestSetValue() {
 	}
 }
 
-func TestSetValueTestSuiteTestSuite(t *testing.T) {
+func TestSetValueTestSuite(t *testing.T) {
 	t.SkipNow()
 	suite.Run(t, new(SetValueTestSuite))
 }

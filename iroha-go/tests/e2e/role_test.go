@@ -62,6 +62,6 @@ func (suite *RoleTestSuite) getRolesByUser() error {
 	return err
 }
 
-func TestRoleTestSuiteTestSuite(t *testing.T) {
+func TestRoleTestSuite(t *testing.T) {
 	suite.Run(t, new(RoleTestSuite))
 }

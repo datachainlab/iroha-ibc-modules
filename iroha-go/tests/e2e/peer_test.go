@@ -55,7 +55,7 @@ func (suite *PeerTestSuite) removePeer(pubKey string) string {
 	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
-func TestPeerTestSuiteTestSuite(t *testing.T) {
+func TestPeerTestSuite(t *testing.T) {
 	t.SkipNow()
 	suite.Run(t, new(PeerTestSuite))
 }

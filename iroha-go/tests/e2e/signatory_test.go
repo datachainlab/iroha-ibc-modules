@@ -21,7 +21,6 @@ func (suite *SignatoryTestSuite) TestSignatory() {
 
 	pubKey, _ := suite.CreateKeyPair()
 
-	// test
 	{
 		// add signatory to admin
 		suite.AddSignatory(AdminAccountId, pubKey, AdminAccountId, AdminPrivateKey)
@@ -39,6 +38,6 @@ func (suite *SignatoryTestSuite) TestSignatory() {
 	}
 }
 
-func TestSignatoryTestSuiteTestSuite(t *testing.T) {
+func TestSignatoryTestSuite(t *testing.T) {
 	suite.Run(t, new(SignatoryTestSuite))
 }
