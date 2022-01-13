@@ -123,3 +123,54 @@ func (suite *TestSuite) RandInt(min int, max int) int {
 	mathrand.Seed(time.Now().UTC().UnixNano())
 	return min + mathrand.Intn(max-min)
 }
+
+func (suite *TestSuite) CreateAccount(accountName, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.CreateAccount(accountName, DomainId, pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) CreateRole(roleName string, permissions []pb.RolePermission) string {
+	tx := suite.BuildTransaction(
+		command.CreateRole(roleName, permissions),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) AppendRole(targetAccountId, roleName string) string {
+	tx := suite.BuildTransaction(
+		command.AppendRole(targetAccountId, roleName),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) AddSignatory(targetAccountId, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.AddSignatory(targetAccountId, pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *TestSuite) RemoveSignatory(targetAccountId, pubKey string) string {
+	tx := suite.BuildTransaction(
+		command.RemoveSignatory(targetAccountId, pubKey),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+// GetSignatory gets signatory, and returns keys
+func (suite *TestSuite) GetSignatory(targetAccountId string) []string {
+	q := query.GetSignatories(
+		targetAccountId,
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetSignatoriesResponse().GetKeys()
+}
