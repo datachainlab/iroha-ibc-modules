@@ -156,12 +156,12 @@ func (suite *TestSuite) DetachRole(targetAccountId, roleName string) string {
 	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
-func (suite *TestSuite) GetRoles(targetAccountId, targetAccountPrivKey string) []string {
+func (suite *TestSuite) GetRoles(byAccountId, byAccountPrivKey string) []string {
 	// check current role first
 	q := query.GetRoles(
-		query.CreatorAccountId(targetAccountId),
+		query.CreatorAccountId(byAccountId),
 	)
-	res := suite.SendQuery(q, targetAccountPrivKey)
+	res := suite.SendQuery(q, byAccountPrivKey)
 	return res.GetRolesResponse().Roles
 	// roles would like `admin, user, money_creator, evm_admin, gateway_querier`
 }
@@ -173,6 +173,22 @@ func (suite *TestSuite) GetRolePermissions(roleName string) []pb.RolePermission 
 	)
 	res := suite.SendQuery(q, AdminPrivateKey)
 	return res.GetRolePermissionsResponse().Permissions
+}
+
+func (suite *TestSuite) GrantPermission(toUserAccountId string, permission pb.GrantablePermission, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.GrantPermission(toUserAccountId, permission),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
+}
+
+func (suite *TestSuite) RevokePermission(fromUserAccountId string, permission pb.GrantablePermission, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.RevokePermission(fromUserAccountId, permission),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
 }
 
 func (suite *TestSuite) AddSignatory(targetAccountId, pubKey string) string {

@@ -19,6 +19,10 @@ test-domain: clean-cache
 test-peer: clean-cache
 	go test -race -run TestPeerTestSuiteTestSuite -v ./tests/e2e/...
 
+.PHONY: test-permission
+test-permission: clean-cache
+	go test -race -run TestPermissionTestSuiteTestSuite -v ./tests/e2e/...
+
 .PHONY: test-role
 test-role: clean-cache
 	go test -race -run TestRoleTestSuiteTestSuite -v ./tests/e2e/...
