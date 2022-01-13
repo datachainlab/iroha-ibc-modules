@@ -132,6 +132,14 @@ func (suite *TestSuite) CreateAccount(accountName, pubKey string) string {
 	return suite.SendTransaction(tx, AdminPrivateKey)
 }
 
+func (suite *TestSuite) CreateDomain(defaultRole, domainId string) string {
+	tx := suite.BuildTransaction(
+		command.CreateDomain(defaultRole, domainId),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
 func (suite *TestSuite) CreateRole(roleName string, permissions []pb.RolePermission) string {
 	tx := suite.BuildTransaction(
 		command.CreateRole(roleName, permissions),
