@@ -1,9 +1,9 @@
 name: Test
 on:
   pull_request:
-    paths-ignore:
-      - 'onchain-module/**'
-      - 'web3-gateway/**'
+    paths:
+      - "docker"
+      - "iroha-go"
 
 jobs:
   extension-test:
