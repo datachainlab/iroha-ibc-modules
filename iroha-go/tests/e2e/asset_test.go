@@ -28,7 +28,7 @@ func (suite *AssetTestSuite) TestAsset() {
 
 	assets := suite.getAccountAsset()
 
-	// CreateAsset if not exists
+	// createAsset if not exists
 	if len(assets) == 0 {
 		suite.createAsset(assetName, DomainId, precision)
 	} else {

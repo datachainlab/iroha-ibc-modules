@@ -21,67 +21,18 @@ type AccountTestSuite struct {
 // TODO: test for CompareAndSetAccountDetail
 
 func (suite *AccountTestSuite) TestCreateAccount() {
-	var TestAccountName = suite.AddUnixSuffix("test_account", "_")
-	var TestAccountId = fmt.Sprintf("%s@%s", TestAccountName, DomainId)
+	//suite.T().SkipNow()
+	var accountName = suite.AddUnixSuffix("test_account", "_")
+	var accountId = fmt.Sprintf("%s@%s", accountName, DomainId)
+	pubKey, _ := suite.CreateKeyPair()
 
 	{
-		// create key pair for new account
-		pubKey, _, err := suite.CreateKeyPair()
-		suite.Require().NoError(err)
+		suite.CreateAccount(accountName, pubKey)
 
-		// create account
-		tx := suite.BuildTransaction(
-			command.CreateAccount(TestAccountName, DomainId, pubKey),
-			AdminAccountId,
-		)
-		hash := suite.SendTransaction(tx, AdminPrivateKey)
+		account := suite.getAccount(accountId)
+		suite.Require().NotNil(account)
 
-		// check transaction by hash
-		q := query.GetTransactions(
-			[]string{hash},
-			query.CreatorAccountId(AdminAccountId),
-		)
-		res := suite.SendQuery(q, AdminPrivateKey)
-		txs := res.GetTransactionsResponse().Transactions
-		suite.Require().Condition(func() bool {
-			if len(txs) == 0 {
-				return false
-			}
-			return true
-		}, "transaction must be more than 0")
-
-		// GetEngineReceipts
-		// TODO: response has no receipts
-		q = query.GetEngineReceipts(
-			hash,
-			query.CreatorAccountId(AdminAccountId),
-		)
-		res = suite.SendQuery(q, AdminPrivateKey)
-		engineReceipts := res.GetEngineReceiptsResponse().EngineReceipts
-		suite.T().Log(engineReceipts)
-	}
-
-	{
-		// check new account
-		q := query.GetAccount(
-			TestAccountId,
-			query.CreatorAccountId(AdminAccountId),
-		)
-
-		res := suite.SendQuery(q, AdminPrivateKey)
-		acc := res.GetAccountResponse().GetAccount()
-		suite.Require().NotNil(acc)
-	}
-
-	{
-		q := query.GetAccountTransactions(
-			AdminAccountId,
-			&pb.TxPaginationMeta{PageSize: math.MaxUint32},
-			query.CreatorAccountId(AdminAccountId),
-		)
-
-		res := suite.SendQuery(q, AdminPrivateKey)
-		txs := res.GetTransactionsPageResponse().Transactions
+		txs := suite.getAccountTransactions(AdminAccountId)
 		suite.Require().Condition(func() bool {
 			if len(txs) == 0 {
 				return false
@@ -93,153 +44,59 @@ func (suite *AccountTestSuite) TestCreateAccount() {
 }
 
 func (suite *AccountTestSuite) TestSetAccountDetail() {
+	//suite.T().SkipNow()
 	var (
 		key   = suite.randStringRunes(10)
 		value = suite.randStringRunes(10)
 	)
 
 	{
-		tx := suite.BuildTransaction(
-			command.SetAccountDetail(AdminAccountId, key, value),
-			AdminAccountId,
-		)
-
-		suite.SendTransaction(tx, AdminPrivateKey)
+		suite.setAccountDetail(AdminAccountId, key, value)
+		detail := suite.getAccountDetail(AdminAccountId, key)
+		expected := fmt.Sprintf("{ \"%s\" : { \"%s\" : \"%s\" } }", AdminAccountId, key, value)
+		suite.Equal(expected, detail)
 	}
-
-	// below error
-	// - Transaction deserialization failed: hash Hash: [c7aeb854bcca94c70dca7f1182a99287f6248a548a16c57063f8e496150cdc91], SignedData: [Child errors=[Transaction: [Child errors=[Command #1: [Child errors=[AppendRole: [Child errors=[AccountId: [Errors=[passed value: 'f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70' does not match regex '[a-z_0-9]{1,32}\@([a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?'.]]]]]]]]]]
-	// - paginationMeta is replaced by nil to avoid the error for now. but it must be fixed
-	q := query.GetAccountDetail(
-		&pb.GetAccountDetail_AccountId{AccountId: AdminAccountId},
-		&pb.GetAccountDetail_Key{Key: key},
-		&pb.GetAccountDetail_Writer{Writer: AdminAccountId},
-		//&pb.AccountDetailPaginationMeta{PageSize: math.MaxUint32},
-		nil,
-		query.CreatorAccountId(AdminAccountId),
-	)
-
-	res := suite.SendQuery(q, AdminPrivateKey)
-	// it returns only value of key
-	detail := res.GetAccountDetailResponse().GetDetail()
-	expected := fmt.Sprintf("{ \"%s\" : { \"%s\" : \"%s\" } }", AdminAccountId, key, value)
-	suite.Equal(expected, detail)
 }
 
 func (suite *AccountTestSuite) TestSetAccountQuorum() {
-	// Scenario1: user call `SetAccountQuorum` to user itself
 	var (
 		setQuorumRole        = suite.AddUnixSuffix("set_quorum", "_")
 		grantSetMyQuorumRole = suite.AddUnixSuffix("grant_set_my_quorum", "_")
+		signatoryRoleName    = suite.AddUnixSuffix("signatory", "_")
 	)
-	{
-		// create role RolePermission_can_set_quorum
-		tx := suite.BuildTransaction(
-			command.CreateRole(setQuorumRole, []pb.RolePermission{pb.RolePermission_can_set_quorum}),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
+	suite.CreateRole(setQuorumRole, []pb.RolePermission{pb.RolePermission_can_set_quorum})
+	suite.CreateRole(grantSetMyQuorumRole, []pb.RolePermission{pb.RolePermission_can_grant_can_set_my_quorum})
+	suite.CreateRole(signatoryRoleName, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory})
 
-		// create role RolePermission_can_grant_can_set_my_quorum
-		tx = suite.BuildTransaction(
-			command.CreateRole(grantSetMyQuorumRole, []pb.RolePermission{pb.RolePermission_can_grant_can_set_my_quorum}),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
-	}
+	// Scenario1: user call `SetAccountQuorum` to user itself
+	suite.AppendRole(UserAccountId, signatoryRoleName)
 	{
-		// append setQuorumRole to admin
-		//tx := suite.BuildTransaction(
-		//	command.AppendRole(AdminAccountId, setQuorumRole),
-		//	AdminAccountId,
-		//)
-		//suite.SendTransaction(tx, AdminPrivateKey)
+		pubKey, _ := suite.CreateKeyPair()
+		suite.AddSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 
-		// append grantSetMyQuorumRole to user
-		//tx := suite.BuildTransaction(
-		//	command.AppendRole(UserAccountId, grantSetMyQuorumRole),
-		//	AdminAccountId,
-		//)
-		//suite.SendTransaction(tx, AdminPrivateKey)
+		keys := suite.GetSignatory(UserAccountId)
+		suite.setAccountQuorum(UserAccountId, uint32(len(keys)), UserAccountId, UserPrivateKey)
 	}
 
-	var signatoryRoles = suite.AddUnixSuffix("signatory", "_")
+	// Scenario2: admin call `SetAccountQuorum` to admin itself
 	{
-		// create role `RolePermission_can_add_signatory`
-		tx := suite.BuildTransaction(
-			command.CreateRole(signatoryRoles, []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory}),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
+		pubKey, _ := suite.CreateKeyPair()
+		suite.AddSignatory(AdminAccountId, pubKey, AdminAccountId, AdminPrivateKey)
 
-		// append roles to user
-		tx = suite.BuildTransaction(
-			command.AppendRole(UserAccountId, signatoryRoles),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
-	}
-	{
-		pubKey, _, err := suite.CreateKeyPair()
-		suite.Require().NoError(err)
-		// add signatory to user account by user account
-		tx := suite.BuildTransaction(
-			command.AddSignatory(UserAccountId, pubKey),
-			UserAccountId,
-		)
-		suite.SendTransaction(tx, UserPrivateKey)
+		keys := suite.GetSignatory(AdminAccountId)
+		suite.setAccountQuorum(AdminAccountId, uint32(len(keys)), AdminAccountId, AdminPrivateKey)
 	}
 
+	// Scenario3: admin call `SetAccountQuorum` to user
+	suite.AppendRole(UserAccountId, grantSetMyQuorumRole)
+	suite.GrantPermission(AdminAccountId, pb.GrantablePermission_can_set_my_quorum, UserAccountId, UserPrivateKey)
 	{
-		tx := suite.BuildTransaction(
-			command.SetAccountQuorum(UserAccountId, 2),
-			UserAccountId,
-		)
-		suite.SendTransaction(tx, UserPrivateKey)
+		pubKey, _ := suite.CreateKeyPair()
+		suite.AddSignatory(UserAccountId, pubKey, UserAccountId, UserPrivateKey)
 
-		// FIXME:
-		// command 'SetQuorum' with index '0' did not pass verification with code '2', query arguments: SetQuorum
-		//tx := suite.BuildTransaction(
-		//	command.SetAccountQuorum(UserAccountId, 2),
-		//	AdminAccountId,
-		//)
-		//suite.SendTransaction(tx, AdminPrivateKey)
+		keys := suite.GetSignatory(UserAccountId)
+		suite.setAccountQuorum(UserAccountId, uint32(len(keys)), AdminAccountId, AdminPrivateKey)
 	}
-
-	// try admin
-	{
-		// append roles to user
-		tx := suite.BuildTransaction(
-			command.AppendRole(AdminAccountId, signatoryRoles),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
-
-		pubKey, _, err := suite.CreateKeyPair()
-		suite.Require().NoError(err)
-		// add signatory to user account by user account
-		tx = suite.BuildTransaction(
-			command.AddSignatory(AdminAccountId, pubKey),
-			AdminAccountId,
-		)
-		suite.SendTransaction(tx, AdminPrivateKey)
-
-		tx = suite.BuildTransaction(
-			command.SetAccountQuorum(AdminAccountId, 2),
-			AdminAccountId,
-		)
-		// FIXME: error `encoding/hex: invalid byte: U+006D 'm'`
-		suite.SendTransaction(tx, AdminAccountId)
-	}
-
-	//q := query.GetAccount(
-	//	UserAccountId,
-	//	query.CreatorAccountId(AdminAccountId),
-	//)
-	//
-	//res := suite.SendQuery(q, AdminPrivateKey)
-	//acc := res.GetAccountResponse().GetAccount()
-	//suite.Require().NotNil(acc)
 }
 
 func (suite *AccountTestSuite) randStringRunes(n int) string {
@@ -252,6 +109,60 @@ func (suite *AccountTestSuite) randStringRunes(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func (suite *AccountTestSuite) getAccount(targetAccountId string) *pb.Account {
+	q := query.GetAccount(
+		targetAccountId,
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetAccountResponse().GetAccount()
+}
+
+func (suite *AccountTestSuite) getAccountTransactions(targetAccountId string) []*pb.Transaction {
+	q := query.GetAccountTransactions(
+		targetAccountId,
+		&pb.TxPaginationMeta{PageSize: math.MaxUint32},
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetTransactionsPageResponse().Transactions
+}
+
+func (suite *AccountTestSuite) setAccountDetail(targetAccountId, key, value string) string {
+	tx := suite.BuildTransaction(
+		command.SetAccountDetail(targetAccountId, key, value),
+		AdminAccountId,
+	)
+	return suite.SendTransaction(tx, AdminPrivateKey)
+}
+
+func (suite *AccountTestSuite) getAccountDetail(targetAccountId, key string) string {
+	// below error
+	// - Transaction deserialization failed: hash Hash: [c7aeb854bcca94c70dca7f1182a99287f6248a548a16c57063f8e496150cdc91], SignedData: [Child errors=[Transaction: [Child errors=[Command #1: [Child errors=[AppendRole: [Child errors=[AccountId: [Errors=[passed value: 'f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70' does not match regex '[a-z_0-9]{1,32}\@([a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?'.]]]]]]]]]]
+	// - paginationMeta is replaced by nil to avoid the error for now. but it must be fixed
+	q := query.GetAccountDetail(
+		&pb.GetAccountDetail_AccountId{AccountId: targetAccountId},
+		&pb.GetAccountDetail_Key{Key: key},
+		&pb.GetAccountDetail_Writer{Writer: targetAccountId},
+		//&pb.AccountDetailPaginationMeta{PageSize: math.MaxUint32},
+		nil,
+		query.CreatorAccountId(AdminAccountId),
+	)
+
+	res := suite.SendQuery(q, AdminPrivateKey)
+	return res.GetAccountDetailResponse().GetDetail()
+}
+
+func (suite *AccountTestSuite) setAccountQuorum(targetAccountId string, quorum uint32, byAccountId, byAccountPrivKey string) string {
+	tx := suite.BuildTransaction(
+		command.SetAccountQuorum(targetAccountId, quorum),
+		byAccountId,
+	)
+	return suite.SendTransaction(tx, byAccountPrivKey)
 }
 
 func TestAccountTestSuiteTestSuite(t *testing.T) {

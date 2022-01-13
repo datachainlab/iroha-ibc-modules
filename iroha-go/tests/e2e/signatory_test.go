@@ -13,28 +13,25 @@ type SignatoryTestSuite struct {
 }
 
 func (suite *SignatoryTestSuite) TestSignatory() {
-	pubKey, _, err := suite.CreateKeyPair()
-	suite.Require().NoError(err)
 
 	var signatoryRoleName = suite.AddUnixSuffix("signatory", "_")
 	var signatoryPermissions = []pb.RolePermission{pb.RolePermission_can_add_signatory, pb.RolePermission_can_remove_signatory}
-
-	// create role
 	suite.CreateRole(signatoryRoleName, signatoryPermissions)
-	// append role
 	suite.AppendRole(AdminAccountId, signatoryRoleName)
+
+	pubKey, _ := suite.CreateKeyPair()
 
 	// test
 	{
 		// add signatory to admin
-		suite.AddSignatory(AdminAccountId, pubKey)
+		suite.AddSignatory(AdminAccountId, pubKey, AdminAccountId, AdminPrivateKey)
 
 		// get signatory
 		keys := suite.GetSignatory(AdminAccountId)
 		suite.Require().Contains(keys, pubKey)
 
 		// remove signatory from admin account
-		suite.RemoveSignatory(AdminAccountId, pubKey)
+		suite.RemoveSignatory(AdminAccountId, pubKey, AdminAccountId, AdminPrivateKey)
 
 		// get signatory again
 		keys = suite.GetSignatory(AdminAccountId)

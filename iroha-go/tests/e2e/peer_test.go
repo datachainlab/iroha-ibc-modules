@@ -17,8 +17,7 @@ type PeerTestSuite struct {
 func (suite *PeerTestSuite) TestPeer() {
 	var port = suite.RandInt(20000, 65535)
 	address := fmt.Sprintf("127.0.0.1:%d", port)
-	pubKey, _, err := suite.CreateKeyPair()
-	suite.Require().NoError(err)
+	pubKey, _ := suite.CreateKeyPair()
 	{
 		// add peer
 		// FIXME: after running this command, subsequent commands fail

@@ -107,13 +107,11 @@ func (suite *TestSuite) SendQueryWithError(query *pb.Query, privKey string) (*pb
 	return res, err
 }
 
-func (suite *TestSuite) CreateKeyPair() (string, string, error) {
+func (suite *TestSuite) CreateKeyPair() (string, string) {
 	pubKey, privKey, err := crypto.GenerateKey(rand.Reader)
-	if err != nil {
-		return "", "", err
-	}
+	suite.Require().NoError(err)
 
-	return pubKey.Hex(), privKey.Hex(), nil
+	return pubKey.Hex(), privKey.Hex()
 }
 
 func (suite *TestSuite) AddUnixSuffix(target, delimiter string) string {
@@ -192,20 +190,20 @@ func (suite *TestSuite) RevokePermission(fromUserAccountId string, permission pb
 	return suite.SendTransaction(tx, byAccountPrivKey)
 }
 
-func (suite *TestSuite) AddSignatory(targetAccountId, pubKey string) string {
+func (suite *TestSuite) AddSignatory(targetAccountId, pubKey, byAccountId, byAccountPrivKey string) string {
 	tx := suite.BuildTransaction(
 		command.AddSignatory(targetAccountId, pubKey),
-		AdminAccountId,
+		byAccountId,
 	)
-	return suite.SendTransaction(tx, AdminPrivateKey)
+	return suite.SendTransaction(tx, byAccountPrivKey)
 }
 
-func (suite *TestSuite) RemoveSignatory(targetAccountId, pubKey string) string {
+func (suite *TestSuite) RemoveSignatory(targetAccountId, pubKey, byAccountId, byAccountPrivKey string) string {
 	tx := suite.BuildTransaction(
 		command.RemoveSignatory(targetAccountId, pubKey),
-		AdminAccountId,
+		byAccountId,
 	)
-	return suite.SendTransaction(tx, AdminPrivateKey)
+	return suite.SendTransaction(tx, byAccountPrivKey)
 }
 
 // GetSignatory gets signatory, and returns keys

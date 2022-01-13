@@ -39,6 +39,10 @@ test-setvalue: clean-cache
 test-signatory: clean-cache
 	go test -race -run TestSignatoryTestSuiteTestSuite -v ./tests/e2e/...
 
+.PHONY: test-transaction
+test-transaction: clean-cache
+	go test -race -run TestTransactionTestSuiteTestSuite -v ./tests/e2e/...
+
 .PHONY: clean-cache
 clean-cache:
 	go clean -testcache
