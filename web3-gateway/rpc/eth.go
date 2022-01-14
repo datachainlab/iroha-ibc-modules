@@ -27,10 +27,11 @@ import (
 )
 
 const (
-	chainID   = math.MaxInt32
-	networkID = math.MaxInt32
-	hexZero   = "0x0"
-	hexOne    = "0x1"
+	chainID       = math.MaxInt32
+	networkID     = math.MaxInt32
+	hexZero       = "0x0"
+	hexOne        = "0x1"
+	zeroBlockHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
 )
 
 type EthService struct {
@@ -167,6 +168,7 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 		return &web3.EthGetBlockByNumberResult{
 			GetBlockByNumberResult: web3.Block{
 				Number: num,
+				Hash:   zeroBlockHash,
 			},
 		}, nil
 	}
@@ -202,7 +204,7 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	return &web3.EthGetBlockByNumberResult{
 		GetBlockByNumberResult: web3.Block{
 			Number:    util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
-			Hash:      hexZero,
+			Hash:      zeroBlockHash,
 			Timestamp: util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
 		},
 	}, nil
@@ -375,7 +377,7 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 
 	tx := web3.Transaction{
 		BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Height)),
-		BlockHash:        hexZero,
+		BlockHash:        zeroBlockHash,
 		TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Index)),
 		Hash:             util.ToEthereumHexString(eTx.TxHash),
 		From:             util.ToEthereumHexString(acc.IrohaAddress),
@@ -435,7 +437,7 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
-			BlockHash:         hexZero,
+			BlockHash:         zeroBlockHash,
 			GasUsed:           hexZero,
 			CumulativeGasUsed: hexZero,
 			LogsBloom:         "",
@@ -610,7 +612,7 @@ func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []Logs {
 				TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
 				TransactionHash:  util.ToEthereumHexString(log.TxHash),
 				Address:          util.ToEthereumHexString(log.Address),
-				BlockHash:        hexZero,
+				BlockHash:        zeroBlockHash,
 				BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
 				Data:             util.ToEthereumHexString(log.Data),
 			},
