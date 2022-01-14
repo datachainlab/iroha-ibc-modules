@@ -31,7 +31,9 @@ const (
 	networkID     = math.MaxInt32
 	hexZero       = "0x0"
 	hexOne        = "0x1"
-	zeroBlockHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	zeroHash      = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	zeroAddress   = "0x0000000000000000000000000000000000000000"
+	zeroLogBlooms = "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 )
 
 type EthService struct {
@@ -163,24 +165,20 @@ func (e EthService) EthGetBlockByHash(*web3.EthGetBlockByHashParams) (*web3.EthG
 }
 
 func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) (*web3.EthGetBlockByNumberResult, error) {
-	num := hexOne
-	if params.BlockNumber == "earliest" {
-		return &web3.EthGetBlockByNumberResult{
-			GetBlockByNumberResult: web3.Block{
-				Number: num,
-				Hash:   zeroBlockHash,
-			},
-		}, nil
-	}
-
 	var height uint64
 	var err error
-	if params.BlockNumber == "latest" || params.BlockNumber == "pending" {
+
+	switch params.BlockNumber {
+	case "earliest":
+		height = 1
+	case "latest":
+		fallthrough
+	case "pending":
 		err = e.irohaDBTransactor.Exec(context.Background(), e.querier, func(querier db.DBExecer) (err error) {
 			height, err = querier.GetLatestHeight()
 			return
 		})
-	} else {
+	default:
 		height, err = strconv.ParseUint(x.RemovePrefix(params.BlockNumber), 16, 64)
 	}
 	if err != nil {
@@ -203,9 +201,25 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 
 	return &web3.EthGetBlockByNumberResult{
 		GetBlockByNumberResult: web3.Block{
-			Number:    util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
-			Hash:      zeroBlockHash,
-			Timestamp: util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
+			ParentHash:       zeroHash,
+			Sha3Uncles:       zeroHash,
+			Miner:            zeroAddress,
+			StateRoot:        zeroHash,
+			TransactionsRoot: zeroHash,
+			ReceiptsRoot:     zeroHash,
+			LogsBloom:        zeroLogBlooms,
+			Difficulty:       hexZero,
+			Number:           util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
+			GasLimit:         hexZero,
+			GasUsed:          hexZero,
+			Timestamp:        util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
+			ExtraData:        hexZero,
+			Hash:             zeroHash,
+			TotalDifficulty:  hexZero,
+			Size:             hexZero,
+			Nonce:            hexZero,
+			Transactions:     nil,
+			Uncles:           nil,
 		},
 	}, nil
 }
@@ -377,7 +391,7 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 
 	tx := web3.Transaction{
 		BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Height)),
-		BlockHash:        zeroBlockHash,
+		BlockHash:        zeroHash,
 		TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Index)),
 		Hash:             util.ToEthereumHexString(eTx.TxHash),
 		From:             util.ToEthereumHexString(acc.IrohaAddress),
@@ -437,7 +451,7 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
-			BlockHash:         zeroBlockHash,
+			BlockHash:         zeroHash,
 			GasUsed:           hexZero,
 			CumulativeGasUsed: hexZero,
 			LogsBloom:         "",
@@ -612,7 +626,7 @@ func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []Logs {
 				TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
 				TransactionHash:  util.ToEthereumHexString(log.TxHash),
 				Address:          util.ToEthereumHexString(log.Address),
-				BlockHash:        zeroBlockHash,
+				BlockHash:        zeroHash,
 				BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
 				Data:             util.ToEthereumHexString(log.Data),
 			},
