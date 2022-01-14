@@ -27,11 +27,13 @@ import (
 )
 
 const (
-	chainID       = math.MaxInt32
-	networkID     = math.MaxInt32
-	hexZero       = "0x0"
-	hexOne        = "0x1"
-	zeroBlockHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	chainID     = math.MaxInt32
+	networkID   = math.MaxInt32
+	hexZero     = "0x0"
+	hexOne      = "0x1"
+	zeroHash    = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	zeroAddress = "0000000000000000000000000000000000000000"
+	zeroBloom   = "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 )
 
 type EthService struct {
@@ -166,9 +168,42 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	num := hexOne
 	if params.BlockNumber == "earliest" {
 		return &web3.EthGetBlockByNumberResult{
+			/*
+				type Header struct {
+					ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
+					UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
+					Coinbase    common.Address `json:"miner"            gencodec:"required"`
+					Root        common.Hash    `json:"stateRoot"        gencodec:"required"`
+					TxHash      common.Hash    `json:"transactionsRoot" gencodec:"required"`
+					ReceiptHash common.Hash    `json:"receiptsRoot"     gencodec:"required"`
+					Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
+					Difficulty  *big.Int       `json:"difficulty"       gencodec:"required"`
+					Number      *big.Int       `json:"number"           gencodec:"required"`
+					GasLimit    uint64         `json:"gasLimit"         gencodec:"required"`
+					GasUsed     uint64         `json:"gasUsed"          gencodec:"required"`
+					Time        uint64         `json:"timestamp"        gencodec:"required"`
+					Extra       []byte         `json:"extraData"        gencodec:"required"`
+					MixDigest   common.Hash    `json:"mixHash"`
+					Nonce       BlockNonce     `json:"nonce"`
+				}
+			*/
+			/*
+				type rpcBlock struct {
+					Hash         common.Hash      `json:"hash"`
+					Transactions []rpcTransaction `json:"transactions"`
+					UncleHashes  []common.Hash    `json:"uncles"`
+				}
+			*/
 			GetBlockByNumberResult: web3.Block{
-				Number: num,
-				Hash:   zeroBlockHash,
+				Number:           num,
+				ParentHash:       zeroHash,
+				Sha3Uncles:       zeroHash,
+				Miner:            zeroAddress,
+				StateRoot:        zeroHash,
+				TransactionsRoot: zeroHash,
+				ReceiptsRoot:     zeroHash,
+				LogsBloom:        zeroBloom,
+				Hash:             zeroHash,
 			},
 		}, nil
 	}
@@ -203,9 +238,16 @@ func (e EthService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 
 	return &web3.EthGetBlockByNumberResult{
 		GetBlockByNumberResult: web3.Block{
-			Number:    util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
-			Hash:      zeroBlockHash,
-			Timestamp: util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
+			Number:           util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetHeight())),
+			ParentHash:       zeroHash,
+			Sha3Uncles:       zeroHash,
+			Miner:            zeroAddress,
+			StateRoot:        zeroHash,
+			TransactionsRoot: zeroHash,
+			ReceiptsRoot:     zeroHash,
+			LogsBloom:        zeroBloom,
+			Hash:             zeroHash,
+			Timestamp:        util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
 		},
 	}, nil
 }
@@ -377,7 +419,7 @@ func (e EthService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 
 	tx := web3.Transaction{
 		BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Height)),
-		BlockHash:        zeroBlockHash,
+		BlockHash:        zeroHash,
 		TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Index)),
 		Hash:             util.ToEthereumHexString(eTx.TxHash),
 		From:             util.ToEthereumHexString(acc.IrohaAddress),
@@ -437,7 +479,7 @@ func (e EthService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
-			BlockHash:         zeroBlockHash,
+			BlockHash:         zeroHash,
 			GasUsed:           hexZero,
 			CumulativeGasUsed: hexZero,
 			LogsBloom:         "",
@@ -612,7 +654,7 @@ func irohaToEthereumTxReceiptLogs(logs []*entity.EngineReceiptLog) []Logs {
 				TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", log.Index)),
 				TransactionHash:  util.ToEthereumHexString(log.TxHash),
 				Address:          util.ToEthereumHexString(log.Address),
-				BlockHash:        zeroBlockHash,
+				BlockHash:        zeroHash,
 				BlockNumber:      util.ToEthereumHexString(fmt.Sprintf("%x", log.Height)),
 				Data:             util.ToEthereumHexString(log.Data),
 			},
