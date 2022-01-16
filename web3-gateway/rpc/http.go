@@ -14,7 +14,7 @@ type HTTPServer struct {
 	handler http.Handler
 }
 
-func NewHTTPServer(ethService *EthService) *HTTPServer {
+func NewHTTPServer(ethService EthService) *HTTPServer {
 	srv := &HTTPServer{}
 
 	cdcMap := srv.endpointCodecMap(ethService)
@@ -31,7 +31,7 @@ func (srv *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	srv.handler.ServeHTTP(w, r)
 }
 
-func (srv *HTTPServer) endpointCodecMap(ethService *EthService) jsonrpc.EndpointCodecMap {
+func (srv *HTTPServer) endpointCodecMap(ethService EthService) jsonrpc.EndpointCodecMap {
 	return jsonrpc.EndpointCodecMap{
 		"web3_clientVersion": jsonrpc.EndpointCodec{
 			Endpoint: func(ctx context.Context, req interface{}) (res interface{}, err error) {

@@ -9,14 +9,15 @@ import (
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
-	Use: "config",
+	Use:   "config",
+	Short: "display the configuration of the web3-gateway server",
 	Run: func(cmd *cobra.Command, args []string) {
 		var b bytes.Buffer
 
-		d := yaml.NewEncoder(&b)
-		d.SetIndent(2)
+		enc := yaml.NewEncoder(&b)
+		enc.SetIndent(2)
 
-		cobra.CheckErr(d.Encode(cfg))
+		cobra.CheckErr(enc.Encode(cfg))
 
 		_, err := cmd.OutOrStdout().Write(b.Bytes())
 		cobra.CheckErr(err)

@@ -60,6 +60,8 @@ func (m MemDB) GetByIrohaAccountID(accountID string) (*Account, error) {
 	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexId, accountID)
 	if err != nil {
 		return nil, err
+	} else if raw == nil {
+		return nil, ErrNotFound
 	}
 
 	return raw.(*Account), nil
@@ -70,6 +72,8 @@ func (m MemDB) GetByIrohaAddress(address string) (*Account, error) {
 	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexIrohaAddress, address)
 	if err != nil {
 		return nil, err
+	} else if raw == nil {
+		return nil, ErrNotFound
 	}
 
 	return raw.(*Account), nil
@@ -80,6 +84,8 @@ func (m MemDB) GetByEthereumAddress(address string) (*Account, error) {
 	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexEthereumAddress, address)
 	if err != nil {
 		return nil, err
+	} else if raw == nil {
+		return nil, ErrNotFound
 	}
 
 	return raw.(*Account), nil

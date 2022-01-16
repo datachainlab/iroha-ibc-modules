@@ -1,14 +1,14 @@
-name: Test
+name: iroha-go
 on:
   pull_request:
     paths:
       - "docker/**"
       - "iroha-go/**"
-      - ".github/workflows/test.yml"
+      - ".github/workflows/test-iroha-go.yml"
 
 jobs:
-  extension-test:
-    name: extension
+  test-e2e:
+    name: test-e2e
     runs-on: ubuntu-20.04
     steps:
       - name: Set up Go 1.16

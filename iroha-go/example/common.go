@@ -14,6 +14,7 @@ const (
 	UserAccountId   = "test@test"
 	AdminPrivateKey = "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70"
 	AssetId         = "coolcoin#test"
+	UserPrivateKey  = "7e00405ece477bb6dd9b03a78eee4e708afc2f5bcdce399573a5958942f4a390"
 )
 
 func connect() (*grpc.ClientConn, error) {

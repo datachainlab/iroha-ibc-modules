@@ -63,7 +63,7 @@ func NewTransactor(
 }
 
 func (c *postgresTransactor) Close() error {
-	return c.db.DB.Close()
+	return c.db.Close()
 }
 
 func (c *postgresTransactor) Exec(ctx context.Context, caller string, f func(execer db.DBExecer) error) error {

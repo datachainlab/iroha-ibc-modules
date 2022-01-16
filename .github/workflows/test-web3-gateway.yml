@@ -1,0 +1,51 @@
+name: web3-gateway
+on:
+  pull_request:
+    paths:
+      - "docker/**"
+      - "iroha-go/**"
+      - "web3-gateway/**"
+      - ".github/workflows/test-web3-gateway.yml"
+
+jobs:
+  test-e2e:
+    name: test-e2e
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Set up Node.js 12
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - uses: actions/checkout@v2
+      - name: Cache go modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: |
+            ${{ github.workspace }}/web3-gateway/tests/e2e/contracts/node_modules
+          key: ${{ runner.os }}-web3-gateway-e2e-${{ hashFiles('web3-gateway/tests/e2e/contracts/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-web3-gateway-e2e-
+      - name: Run docker-compose
+        run: docker compose up -d iroha-node0 iroha-node0-postgres iroha-web3-gateway0
+      - name: Download NPM dependency
+        working-directory: web3-gateway/tests/e2e/contracts
+        run: npm install
+      - name: Run Unit Test for web3-gateway
+        working-directory: web3-gateway/tests/e2e/contracts
+        run: |
+          npm run test
