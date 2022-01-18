@@ -37,6 +37,8 @@ const (
 	zeroHash      = "0x0000000000000000000000000000000000000000000000000000000000000000"
 	zeroAddress   = "0x0000000000000000000000000000000000000000"
 	zeroLogBlooms = "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	zeroNonce     = "0x0000000000000000"
+	zeroBytes     = ""
 )
 
 var _ EthService = (*ethService)(nil)
@@ -260,10 +262,10 @@ func (e ethService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 	return &web3.EthGetBlockByNumberResult{
 		GetBlockByNumberResult: web3.Block{
 			ParentHash:       zeroHash,
-			Sha3Uncles:       zeroHash,
+			Sha3Uncles:       types.EmptyUncleHash.Hex(),
 			Miner:            zeroAddress,
 			StateRoot:        zeroHash,
-			TransactionsRoot: zeroHash,
+			TransactionsRoot: types.EmptyRootHash.Hex(),
 			ReceiptsRoot:     zeroHash,
 			LogsBloom:        zeroLogBlooms,
 			Difficulty:       hexZero,
@@ -271,11 +273,11 @@ func (e ethService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 			GasLimit:         hexZero,
 			GasUsed:          hexZero,
 			Timestamp:        util.ToEthereumHexString(fmt.Sprintf("%x", block.Payload.GetCreatedTime())),
-			ExtraData:        hexZero,
+			ExtraData:        zeroBytes,
 			Hash:             zeroHash,
 			TotalDifficulty:  hexZero,
 			Size:             hexZero,
-			Nonce:            hexZero,
+			Nonce:            zeroNonce,
 			Transactions:     nil,
 			Uncles:           nil,
 		},
