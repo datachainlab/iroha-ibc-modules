@@ -1,0 +1,27 @@
+FROM ghcr.io/datachainlab/iroha:1.3.0-vcpkg
+
+USER root
+
+COPY hex-regex-fix.patch /opt/iroha/iroha
+WORKDIR /opt/iroha/iroha
+RUN git apply hex-regex-fix.patch
+
+WORKDIR /opt/iroha/iroha
+RUN cmake -B build \
+	-DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake \
+	. \
+	-DCMAKE_BUILD_TYPE=Debug \
+	-GNinja \
+	-DUSE_BURROW=ON \
+	-DUSE_URSA=OFF \
+	-DTESTING=OFF \
+	-DPACKAGE_DEB=OFF
+
+WORKDIR /opt/iroha/iroha/build
+RUN cmake --build . --target irohad
+
+COPY entrypoint.sh /
+COPY wait-for-it.sh /
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["irohad"]

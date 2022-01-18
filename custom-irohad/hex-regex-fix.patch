@@ -1,0 +1,33 @@
+diff --git a/shared_model/validators/field_validator.cpp b/shared_model/validators/field_validator.cpp
+index 25d263d..98abe44 100644
+--- a/shared_model/validators/field_validator.cpp
++++ b/shared_model/validators/field_validator.cpp
+@@ -103,8 +103,6 @@ namespace {
+   const RegexValidator kAccountDetailKeyValidator{"DetailKey",
+                                                   R"([A-Za-z0-9_]{1,64})"};
+   const RegexValidator kRoleIdValidator{"RoleId", R"#([a-z_0-9]{1,32})#"};
+-  const RegexValidator kHexValidator{
+-      "Hex", R"#(([0-9a-fA-F][0-9a-fA-F])*)#", "Hex encoded string expected"};
+   const RegexValidator kPublicKeyHexValidator{
+       "PublicKeyHex",
+       fmt::format("[A-Fa-f0-9]{{1,{}}}",
+@@ -143,8 +141,17 @@ namespace shared_model {
+ 
+     std::optional<ValidationError> FieldValidator::validateBytecode(
+         interface::types::EvmCodeHexStringView input) const {
+-      return kHexValidator.validate(
+-          static_cast<std::string_view const &>(input));
++      const auto &s = static_cast<std::string_view const &>(input);
++      if (s.size() % 2 != 0) {
++        return ValidationError(
++            "Input", {"The number of characters is odd"});
++      }
++      for (const auto &c : s) {
++        if ((c < '0' or c > '9') and (c < 'a' or c > 'f') and (c < 'A' or c > 'F')) {
++          return ValidationError("Input", {"Not a hex string"});
++        }
++      }
++      return std::nullopt;
+     }
+ 
+     std::optional<ValidationError> FieldValidator::validatePeer(
