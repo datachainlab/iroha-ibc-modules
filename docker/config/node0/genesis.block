@@ -137,6 +137,13 @@
                        },
                        {
                           "createAccount":{
+                             "accountName":"relayer",
+                             "domainId":"test",
+                             "publicKey":"0686805bdee9d992127ac70c8360e2c205dea218a39bb982a311908cdc607564"
+                          }
+                       },
+                       {
+                          "createAccount":{
                              "accountName":"test",
                              "domainId":"test",
                              "publicKey":"716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc"
@@ -164,6 +171,24 @@
                        {
                           "appendRole":{
                              "accountId":"admin@test",
+                             "roleName":"evm_admin"
+                          }
+                       },
+                       {
+                          "appendRole":{
+                             "accountId":"relayer@test",
+                             "roleName":"admin"
+                          }
+                       },
+                       {
+                          "appendRole":{
+                             "accountId":"relayer@test",
+                             "roleName":"money_creator"
+                          }
+                       },
+                       {
+                          "appendRole":{
+                             "accountId":"relayer@test",
                              "roleName":"evm_admin"
                           }
                        },

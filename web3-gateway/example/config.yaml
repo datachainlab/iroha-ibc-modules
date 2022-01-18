@@ -20,5 +20,7 @@ accounts:
     privateKey: f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70
   - id: querier@test
     privateKey: 30892fd2209d3a93c1af24de61beae22cce0e08937c16276874a8f598efa2b57
+  - id: relayer@test
+    privateKey: e517af47112e4f501afb26e4f34eadc8b0ad8eadaf4962169fc04bc8ddbfe091
 evm:
   querier: querier@test
