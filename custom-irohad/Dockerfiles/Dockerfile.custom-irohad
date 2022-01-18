@@ -21,4 +21,4 @@ WORKDIR /opt/iroha/iroha/build
 RUN cmake --build . --target irohad
 
 FROM ghcr.io/hyperledger/iroha-burrow:1.3.0
-COPY builder:/opt/iroha/iroha/build/bin/irohad /usr/bin
+COPY --from=builder /opt/iroha/iroha/build/bin/irohad /usr/bin
