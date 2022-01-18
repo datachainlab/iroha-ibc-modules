@@ -1,5 +1,3 @@
-import Accounts = Truffle.Accounts;
-
 const IrohaAPI = artifacts.require("IrohaAPI");
 
 /*
@@ -7,7 +5,7 @@ const IrohaAPI = artifacts.require("IrohaAPI");
  * Ethereum client
  * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
  */
-contract("IrohaAPI", function (accounts: Accounts) {
+contract("IrohaAPI", function (/*accounts: Accounts*/) {
   it("should assert true", async function () {
     await IrohaAPI.deployed();
     return assert.isTrue(true);

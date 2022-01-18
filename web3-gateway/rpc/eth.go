@@ -170,15 +170,15 @@ func (e ethService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, er
 		return nil, err
 	}
 
-	callerAccount, err := e.accountState.GetByIrohaAddress(params.From)
+	callerAccount, err := e.accountState.GetByEthereumAddress(params.From)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := evm.CallSim(
 		e.irohaDBTransactor, e.logger,
-		callerAccount.IrohaAccountID,
-		params.From, params.To,
+		callerAccount.GetIrohaAccountID(),
+		callerAccount.GetIrohaAddress(), params.To,
 		input,
 	)
 	if err != nil {
@@ -452,7 +452,7 @@ func (e ethService) EthGetTransactionByHash(params *web3.EthGetTransactionByHash
 		BlockHash:        zeroHash,
 		TransactionIndex: util.ToEthereumHexString(fmt.Sprintf("%x", eTx.Index)),
 		Hash:             util.ToEthereumHexString(eTx.TxHash),
-		From:             util.ToEthereumHexString(acc.IrohaAddress),
+		From:             acc.GetEthereumAddress(),
 		Nonce:            hexZero,
 		Gas:              hexZero,
 		Value:            hexZero,
@@ -502,10 +502,14 @@ func (e ethService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 		return nil, err
 	}
 
-	from := util.IrohaAccountIDToAddressHex(eReceipt.CreatorID)
+	acc, err := e.accountState.GetByIrohaAccountID(eReceipt.CreatorID)
+	if err != nil {
+		return nil, err
+	}
+	from := acc.GetEthereumAddress()
 	receipt := Receipt{
 		Receipt: web3.Receipt{
-			From:              util.ToEthereumHexString(from),
+			From:              from,
 			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
@@ -601,7 +605,7 @@ func (e ethService) EthAccounts() (*web3.EthAccountsResult, error) {
 	addresses := make([]string, 0, len(accounts))
 
 	for _, acc := range accounts {
-		addresses = append(addresses, util.ToEthereumHexString(acc.GetIrohaAddress()))
+		addresses = append(addresses, acc.GetEthereumAddress())
 	}
 
 	return &web3.EthAccountsResult{
@@ -610,7 +614,7 @@ func (e ethService) EthAccounts() (*web3.EthAccountsResult, error) {
 }
 
 func (e ethService) EthSendTransaction(params *web3.EthSendTransactionParams) (*web3.EthSendTransactionResult, error) {
-	acc, err := e.accountState.GetByIrohaAddress(params.From)
+	acc, err := e.accountState.GetByEthereumAddress(params.From)
 	if err != nil {
 		return nil, err
 	}

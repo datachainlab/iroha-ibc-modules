@@ -3,6 +3,7 @@ import { Transaction, TxData } from "ethereumjs-tx";
 import { StorageInstance } from "../types/truffle-contracts";
 import { Add, Execute, Remove } from "../types/truffle-contracts/Storage";
 import TransactionLog = Truffle.TransactionLog;
+import Accounts = Truffle.Accounts;
 
 const Storage = artifacts.require("Storage");
 
@@ -14,6 +15,8 @@ contract("Storage", function (accounts: Accounts) {
     "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70",
     "hex"
   );
+
+  const adminIrohaAddress = "0xF205C4a929072dd6E7FC081c2A78DbC79C76070B";
 
   const zeroHash =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -56,7 +59,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.equal(executeReceiptLog.event, "Execute");
       assert.equal(
         executeReceiptLog.args.sender,
-        web3.utils.toChecksumAddress(accounts[0])
+        web3.utils.toChecksumAddress(adminIrohaAddress)
       );
       assert.equal(
         executeReceiptLog.args.data,
@@ -78,7 +81,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.equal(addReceiptLog.event, "Add");
       assert.equal(
         addReceiptLog.args.creator,
-        web3.utils.toChecksumAddress(accounts[0])
+        web3.utils.toChecksumAddress(adminIrohaAddress)
       );
       assert.equal(addReceiptLog.args.key, web3.utils.keccak256(key));
       assert.equal(addReceiptLog.args.value, value);
@@ -123,7 +126,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.equal(executeReceiptLog.event, "Execute");
       assert.equal(
         executeReceiptLog.args.sender,
-        web3.utils.toChecksumAddress(accounts[0])
+        web3.utils.toChecksumAddress(adminIrohaAddress)
       );
       assert.equal(
         executeReceiptLog.args.data,
@@ -145,7 +148,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.equal(addReceiptLog.event, "Remove");
       assert.equal(
         addReceiptLog.args.creator,
-        web3.utils.toChecksumAddress(accounts[0])
+        web3.utils.toChecksumAddress(adminIrohaAddress)
       );
       assert.equal(addReceiptLog.args.key, web3.utils.keccak256(key));
       assert.equal(addReceiptLog.logIndex, 1);
