@@ -1,4 +1,4 @@
-FROM ghcr.io/datachainlab/iroha:1.3.0-vcpkg
+FROM ghcr.io/datachainlab/iroha:1.3.0-vcpkg as builder
 
 USER root
 
@@ -20,8 +20,5 @@ RUN cmake -B build \
 WORKDIR /opt/iroha/iroha/build
 RUN cmake --build . --target irohad
 
-COPY entrypoint.sh /
-COPY wait-for-it.sh /
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["irohad"]
+FROM ghcr.io/hyperledger/iroha-burrow:1.3.0
+COPY builder:/opt/iroha/iroha/build/bin/irohad /usr/bin
