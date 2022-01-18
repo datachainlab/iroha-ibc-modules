@@ -1,0 +1,24 @@
+FROM ghcr.io/datachainlab/iroha:1.3.0-vcpkg as builder
+
+USER root
+
+COPY hex-regex-fix.patch /opt/iroha/iroha
+WORKDIR /opt/iroha/iroha
+RUN git apply hex-regex-fix.patch
+
+WORKDIR /opt/iroha/iroha
+RUN cmake -B build \
+	-DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake \
+	. \
+	-DCMAKE_BUILD_TYPE=Debug \
+	-GNinja \
+	-DUSE_BURROW=ON \
+	-DUSE_URSA=OFF \
+	-DTESTING=OFF \
+	-DPACKAGE_DEB=OFF
+
+WORKDIR /opt/iroha/iroha/build
+RUN cmake --build . --target irohad
+
+FROM ghcr.io/hyperledger/iroha-burrow:1.3.0
+COPY --from=builder /opt/iroha/iroha/build/bin/irohad /usr/bin
