@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	x "github.com/hyperledger/burrow/encoding/hex"
 
@@ -74,7 +76,7 @@ type NativeContractExecer interface {
 type TxReceiptLogFilter struct {
 	FromBlock uint64
 	ToBlock   uint64
-	Address   string
+	Addresses []string
 	Topics    []string
 }
 
@@ -92,16 +94,27 @@ func ToBlockOption(n uint64) LogFilterOption {
 	}
 }
 
-func AddressOption(addr string) LogFilterOption {
+func AddressesOption(as []string) LogFilterOption {
 	return func(filter *TxReceiptLogFilter) {
-		filter.Address = util.ToIrohaHexString(addr)
+		filter.Addresses = make([]string, len(as))
+		for i, a := range as {
+			filter.Addresses[i] = util.ToIrohaHexString(a)
+		}
 	}
 }
 
-func TopicsOption(ts ...string) LogFilterOption {
+func TopicsOption(topics [][]string) LogFilterOption {
 	return func(filter *TxReceiptLogFilter) {
-		for _, topic := range ts {
-			filter.Topics = append(filter.Topics, x.RemovePrefix(topic))
+		filter.Topics = make([]string, len(topics))
+		for i, topic := range topics {
+			switch len(topic) {
+			case 0:
+				// skip
+			case 1:
+				filter.Topics[i] = x.RemovePrefix(topic[0])
+			default:
+				fmt.Fprintf(os.Stderr, "up to 1 topic is acceptable for each position, but %d topics are specified", len(topic))
+			}
 		}
 	}
 }
