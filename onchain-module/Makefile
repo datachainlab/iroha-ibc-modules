@@ -57,3 +57,7 @@ ifndef IROHA_EXPERIMENT_ADDRESS
 else
 	python client.py iroha_experiment $(IROHA_EXPERIMENT_ADDRESS)
 endif
+
+.PHONY: integration-test
+integration-test:
+	go test -v ./tests/integration/... -count=1
