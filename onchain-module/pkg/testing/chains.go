@@ -167,20 +167,6 @@ func (chain *Chain) CallOpts(ctx context.Context, index uint32) *bind.CallOpts {
 	}
 }
 
-func (chain *Chain) transactAndWaitMined(opts *bind.TransactOpts, method string, params ...interface{}) error {
-	tx, err := chain.IBCHandler.Transact(opts, method, params)
-	if err != nil {
-		return fmt.Errorf("failed to transact: %v", err)
-	}
-	rc, err := chain.client.WaitForReceiptAndGet(opts.Context, tx)
-	if err != nil {
-		return fmt.Errorf("failed to wait for tx to be mined: %v", err)
-	} else if rc.Status() != 1 {
-		return fmt.Errorf("transaction status error: %v", rc)
-	}
-	return nil
-}
-
 func (chain *Chain) ChainID() int64 {
 	return chain.chainID
 }
