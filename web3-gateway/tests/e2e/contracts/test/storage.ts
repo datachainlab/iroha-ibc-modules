@@ -2,6 +2,7 @@ import Common from "ethereumjs-common";
 import { Transaction, TxData } from "ethereumjs-tx";
 import { StorageInstance } from "../types/truffle-contracts";
 import { Add, Execute, Remove } from "../types/truffle-contracts/Storage";
+import Accounts = Truffle.Accounts;
 import TransactionLog = Truffle.TransactionLog;
 
 const Storage = artifacts.require("Storage");
@@ -14,7 +15,9 @@ contract("Storage", function (accounts: Accounts) {
     "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70",
     "hex"
   );
+  const adminAddress = accounts[3];
 
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
   const zeroHash =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -40,7 +43,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.isTrue(res.receipt.status);
       assert.equal(res.receipt.transactionIndex, 0);
       assert.equal(res.receipt.blockHash, zeroHash);
-      assert.equal(res.receipt.contractAddress, "");
+      assert.equal(res.receipt.contractAddress, zeroAddress);
       assert.equal(
         web3.utils.toChecksumAddress(res.receipt.from as string),
         web3.utils.toChecksumAddress(accounts[0])
@@ -107,7 +110,7 @@ contract("Storage", function (accounts: Accounts) {
       assert.isTrue(res.receipt.status);
       assert.equal(res.receipt.transactionIndex, 0);
       assert.equal(res.receipt.blockHash, zeroHash);
-      assert.equal(res.receipt.contractAddress, "");
+      assert.equal(res.receipt.contractAddress, zeroAddress);
       assert.equal(
         web3.utils.toChecksumAddress(res.receipt.from as string),
         web3.utils.toChecksumAddress(accounts[0])
@@ -201,7 +204,7 @@ contract("Storage", function (accounts: Accounts) {
     });
 
     it("should be get function is successful", async function () {
-      const res = await contract.get(key);
+      const res = await contract.get(key, { from: adminAddress });
       assert.equal(res, value);
     });
 

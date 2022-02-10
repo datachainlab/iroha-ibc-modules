@@ -172,7 +172,7 @@ func (e ethService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, er
 		return nil, err
 	}
 
-	callerAccount, err := e.accountState.GetByEthereumAddress(params.From)
+	callerAccount, err := e.accountState.GetByIrohaAddress(params.From)
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +607,7 @@ func (e ethService) EthAccounts() (*web3.EthAccountsResult, error) {
 	addresses := make([]string, 0, len(accounts))
 
 	for _, acc := range accounts {
-		addresses = append(addresses, acc.GetEthereumAddress())
+		addresses = append(addresses, util.ToEthereumHexString(acc.GetIrohaAddress()))
 	}
 
 	return &web3.EthAccountsResult{
@@ -616,7 +616,7 @@ func (e ethService) EthAccounts() (*web3.EthAccountsResult, error) {
 }
 
 func (e ethService) EthSendTransaction(params *web3.EthSendTransactionParams) (*web3.EthSendTransactionResult, error) {
-	acc, err := e.accountState.GetByEthereumAddress(params.From)
+	acc, err := e.accountState.GetByIrohaAddress(params.From)
 	if err != nil {
 		return nil, err
 	}

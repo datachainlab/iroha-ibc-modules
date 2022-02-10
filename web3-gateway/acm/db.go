@@ -17,6 +17,7 @@ var _ DB = (*MemDB)(nil)
 const (
 	MemDBAccountTable                = "account"
 	MemDBAccountIndexId              = "id"
+	MemDBAccountIndexIrohaAccountId  = "iroha_account_id"
 	MemDBAccountIndexIrohaAddress    = "iroha_address"
 	MemDBAccountIndexEthereumAddress = "ethereum_address"
 )
@@ -27,7 +28,6 @@ type MemDB struct {
 
 func (m MemDB) Add(account *Account) error {
 	txn := m.db.Txn(true)
-
 	if err := txn.Insert(MemDBAccountTable, account); err != nil {
 		txn.Abort()
 		return err
@@ -57,7 +57,7 @@ func (m MemDB) All() ([]*Account, error) {
 
 func (m MemDB) GetByIrohaAccountID(accountID string) (*Account, error) {
 	txn := m.db.Txn(false)
-	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexId, accountID)
+	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexIrohaAccountId, accountID)
 	if err != nil {
 		return nil, err
 	} else if raw == nil {
@@ -99,6 +99,11 @@ func NewMemDB() (DB, error) {
 				Indexes: map[string]*memdb.IndexSchema{
 					MemDBAccountIndexId: {
 						Name:    MemDBAccountIndexId,
+						Unique:  true,
+						Indexer: &memdb.UintFieldIndex{Field: "Id"},
+					},
+					MemDBAccountIndexIrohaAccountId: {
+						Name:    MemDBAccountIndexIrohaAccountId,
 						Unique:  true,
 						Indexer: &memdb.StringFieldIndex{Field: "IrohaAccountID"},
 					},

@@ -36,8 +36,8 @@ func Serve(cfg *config.Config) error {
 
 	keyStore := keyring.NewKeyStore()
 	accountState := acm.NewAccountState(accountDB)
-	for _, account := range cfg.Accounts {
-		if err = accountState.Add(account.ID, account.PrivateKey); err != nil {
+	for i, account := range cfg.Accounts {
+		if err = accountState.Add(account.ID, account.PrivateKey, uint64(i)); err != nil {
 			return err
 		}
 		if err = keyStore.Set(account.ID, account.PrivateKey); err != nil {
