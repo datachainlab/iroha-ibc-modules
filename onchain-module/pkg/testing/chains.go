@@ -38,6 +38,8 @@ const (
 	TransferPort                 = "transfer"
 
 	RelayerKeyIndex uint32 = 0
+
+	ReceiptTimeout = time.Minute
 )
 
 var (
@@ -874,7 +876,9 @@ func (chain *Chain) LastHeader() *gethtypes.Header {
 }
 
 func (chain *Chain) WaitForReceiptAndGet(ctx context.Context, tx *irohatypes.Transaction) error {
-	rc, err := chain.Client().WaitForReceiptAndGet(ctx, tx)
+	toCtx, cancel := context.WithTimeout(ctx, ReceiptTimeout)
+	rc, err := chain.Client().WaitForReceiptAndGet(toCtx, tx)
+	cancel()
 	if err != nil {
 		return err
 	}
