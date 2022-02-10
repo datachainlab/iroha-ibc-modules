@@ -66,7 +66,7 @@ type EthService interface {
 	EthGetRawTransactionByHash(*web3.EthGetRawTransactionByHashParams) (*web3.EthGetRawTransactionByHashResult, error)
 	EthGetRawTransactionByBlockHashAndIndex(*web3.EthGetRawTransactionByBlockHashAndIndexParams) (*web3.EthGetRawTransactionByBlockHashAndIndexResult, error)
 	EthGetRawTransactionByBlockNumberAndIndex(*web3.EthGetRawTransactionByBlockNumberAndIndexParams) (*web3.EthGetRawTransactionByBlockNumberAndIndexResult, error)
-	EthGetLogs(params *web3.EthGetLogsParams) (*EthGetLogsResult, error)
+	EthGetLogs(params *EthGetLogsParams) (*EthGetLogsResult, error)
 	EthGetStorageAt(*web3.EthGetStorageAtParams) (*web3.EthGetStorageAtResult, error)
 	EthGetTransactionByBlockHashAndIndex(*web3.EthGetTransactionByBlockHashAndIndexParams) (*web3.EthGetTransactionByBlockHashAndIndexResult, error)
 	EthGetTransactionByBlockNumberAndIndex(*web3.EthGetTransactionByBlockNumberAndIndexParams) (*web3.EthGetTransactionByBlockNumberAndIndexResult, error)
@@ -340,7 +340,7 @@ func (e ethService) EthGetRawTransactionByBlockNumberAndIndex(*web3.EthGetRawTra
 	return nil, errors.New("implement me")
 }
 
-func (e ethService) EthGetLogs(params *web3.EthGetLogsParams) (*EthGetLogsResult, error) {
+func (e ethService) EthGetLogs(params *EthGetLogsParams) (*EthGetLogsResult, error) {
 	var filterOpts []db.LogFilterOption
 
 	switch params.FromBlock {
@@ -399,12 +399,14 @@ func (e ethService) EthGetLogs(params *web3.EthGetLogsParams) (*EthGetLogsResult
 		filterOpts = append(filterOpts, db.ToBlockOption(height))
 	}
 
-	if len(params.Address) > 0 {
-		filterOpts = append(filterOpts, db.AddressOption(params.Address))
+	if addresses, err := params.Address(); err != nil {
+		return nil, err
+	} else if len(addresses) > 0 {
+		filterOpts = append(filterOpts, db.AddressesOption(addresses))
 	}
 
 	if len(params.Topics) > 0 {
-		filterOpts = append(filterOpts, db.TopicsOption(params.Topics...))
+		filterOpts = append(filterOpts, db.TopicsOption(params.Topics))
 	}
 
 	var eLogs []*entity.EngineReceiptLog
@@ -508,13 +510,15 @@ func (e ethService) EthGetTransactionReceipt(params *web3.EthGetTransactionRecei
 	receipt := Receipt{
 		Receipt: web3.Receipt{
 			From:              util.ToEthereumHexString(from),
+			To:                zeroAddress,
+			ContractAddress:   zeroAddress,
 			TransactionHash:   util.ToEthereumHexString(eReceipt.TxHash),
 			TransactionIndex:  util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Index)),
 			BlockNumber:       util.ToEthereumHexString(fmt.Sprintf("%x", eReceipt.Height)),
 			BlockHash:         zeroHash,
 			GasUsed:           hexZero,
 			CumulativeGasUsed: hexZero,
-			LogsBloom:         "",
+			LogsBloom:         zeroLogBlooms,
 		},
 		Logs: irohaToEthereumTxReceiptLogs(eLogs),
 	}

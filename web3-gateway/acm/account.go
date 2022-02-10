@@ -27,8 +27,8 @@ func NewAccountState(db DB) *AccountState {
 	}
 }
 
-func (s *AccountState) Add(irohaAccountID string, privKey string) error {
-	acc, err := NewAccount(irohaAccountID, privKey)
+func (s *AccountState) Add(irohaAccountID string, privKey string, idx uint64) error {
+	acc, err := NewAccount(irohaAccountID, privKey, idx)
 	if err != nil {
 		return err
 	}
@@ -83,12 +83,13 @@ func has0xPrefix(s string) bool {
 }
 
 type Account struct {
+	Id              uint64
 	EthereumAddress string
 	IrohaAccountID  string
 	IrohaAddress    string
 }
 
-func NewAccount(irohaAccountID string, privKey string) (*Account, error) {
+func NewAccount(irohaAccountID string, privKey string, index uint64) (*Account, error) {
 	bz, err := hex.DecodeString(privKey)
 	if err != nil {
 		return nil, err
@@ -111,6 +112,7 @@ func NewAccount(irohaAccountID string, privKey string) (*Account, error) {
 	ethAddress := util.ToEthereumHexString(ethPubKey.GetAddress().String())
 
 	return &Account{
+		Id:              uint64(index),
 		EthereumAddress: ethAddress,
 		IrohaAccountID:  irohaAccountID,
 		IrohaAddress:    util.ToIrohaHexString(irohaAddress.String()),

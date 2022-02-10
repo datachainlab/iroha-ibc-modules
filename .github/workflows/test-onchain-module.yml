@@ -1,15 +1,14 @@
-name: web3-gateway
+name: onchain-module
 on:
   pull_request:
     paths:
       - "docker/**"
-      - "iroha-go/**"
-      - "web3-gateway/**"
-      - ".github/workflows/test-web3-gateway.yml"
+      - "onchain-module/**"
+      - ".github/workflows/test-onchain-module.yml"
 
 jobs:
-  test-e2e:
-    name: test-e2e
+  test-integration:
+    name: test-integration
     runs-on: ubuntu-20.04
     steps:
       - name: Set up Go 1.16
@@ -36,16 +35,21 @@ jobs:
           cache-name: cache-node-modules
         with:
           path: |
-            ${{ github.workspace }}/web3-gateway/tests/e2e/contracts/node_modules
-          key: ${{ runner.os }}-web3-gateway-${{ hashFiles('web3-gateway/tests/e2e/contracts/package-lock.json') }}
+            ${{ github.workspace }}/onchain-module/node_modules
+          key: ${{ runner.os }}-onchain-module-integration-${{ hashFiles('onchain-module/tests/e2e/contracts/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-web3-gateway-
+            ${{ runner.os }}-onchain-module-integration-
       - name: Run docker-compose
         run: docker compose up -d iroha-node0 iroha-node0-postgres iroha-web3-gateway0
       - name: Download NPM dependency
-        working-directory: web3-gateway/tests/e2e/contracts
-        run: npm install
-      - name: Run Unit Test for web3-gateway
-        working-directory: web3-gateway/tests/e2e/contracts
+        working-directory: onchain-module
         run: |
-          npm run test
+          npm install
+      - name: Migrate Contracts
+        working-directory: onchain-module
+        run: |
+            npm run migrate
+      - name: Run Integration Test for onchain-module
+        working-directory: onchain-module
+        run: |
+          make integration-test

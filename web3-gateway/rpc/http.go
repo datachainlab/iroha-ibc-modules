@@ -309,12 +309,12 @@ func (srv *HTTPServer) endpointCodecMap(ethService EthService) jsonrpc.EndpointC
 		},
 		"eth_getLogs": jsonrpc.EndpointCodec{
 			Endpoint: func(ctx context.Context, req interface{}) (res interface{}, err error) {
-				params := req.(*web3.EthGetLogsParams)
+				params := req.(*EthGetLogsParams)
 				res, err = ethService.EthGetLogs(params)
 				return
 			},
 			Decode: func(ctx context.Context, msg json.RawMessage) (interface{}, error) {
-				req := new(web3.EthGetLogsParams)
+				req := new(EthGetLogsParams)
 				if err := web3.ParamsToStruct(msg, req); err != nil {
 					return nil, err
 				}

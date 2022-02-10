@@ -16,9 +16,16 @@ gateway:
     host: localhost
     port: 8545
 accounts:
+  - id: relayer@test
+    privateKey: e517af47112e4f501afb26e4f34eadc8b0ad8eadaf4962169fc04bc8ddbfe091
+  - id: alice@test
+    privateKey: a6924c9781c46df18c05545735f127eaf788a60816a7aeb9d5e928460b51cb2f
+  - id: bob@test
+    privateKey: f66c1f19a52bf2955d00bf050793a80056ccfa6237b46f4d7d3a9e20af669c29
   - id: admin@test
     privateKey: f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70
   - id: querier@test
     privateKey: 30892fd2209d3a93c1af24de61beae22cce0e08937c16276874a8f598efa2b57
+
 evm:
   querier: querier@test

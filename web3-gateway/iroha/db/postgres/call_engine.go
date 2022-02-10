@@ -132,7 +132,7 @@ func (c *postgresExecer) GetEngineReceiptLogsByFilters(opts ...db.LogFilterOptio
 	filter := &db.TxReceiptLogFilter{
 		FromBlock: 0,
 		ToBlock:   0,
-		Address:   "",
+		Addresses: nil,
 		Topics:    nil,
 	}
 
@@ -160,10 +160,18 @@ func (c *postgresExecer) GetEngineReceiptLogsByFilters(opts ...db.LogFilterOptio
 		conditions.WriteString(fmt.Sprintf("height<=%d", filter.ToBlock))
 	}
 
-	if len(filter.Address) > 0 {
+	if len(filter.Addresses) > 0 {
 		clause()
-		address := x.RemovePrefix(filter.Address)
-		conditions.WriteString(fmt.Sprintf("address IN (LOWER('%s'), UPPER('%s'))", address, address))
+		var addressStr string
+		for i, addr := range filter.Addresses {
+			sep := ""
+			if i > 0 {
+				sep = ", "
+			}
+			addr = x.RemovePrefix(addr)
+			addressStr = fmt.Sprintf("%s%sLOWER('%s'), UPPER('%s')", addressStr, sep, addr, addr)
+		}
+		conditions.WriteString(fmt.Sprintf("address IN (%s)", addressStr))
 	}
 
 	if len(filter.Topics) > 0 {

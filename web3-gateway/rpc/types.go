@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/burrow/rpc/web3"
 )
 
@@ -19,6 +21,42 @@ type EthGetTransactionReceiptResult struct {
 type Receipt struct {
 	web3.Receipt
 	Logs []Logs `json:"logs"`
+}
+
+type Filter struct {
+	// The hex representation of the block's height
+	FromBlock string `json:"fromBlock"`
+	// The hex representation of the block's height
+	ToBlock string `json:"toBlock"`
+	// address is a string or an array of strings
+	Address_ interface{} `json:"address"`
+	// Array of 32 Bytes DATA topics. Topics are order-dependent. Each topic can also be an array of DATA with 'or' options
+	Topics [][]string `json:"topics"`
+}
+
+type EthGetLogsParams struct {
+	Filter
+}
+
+func (f *Filter) Address() ([]string, error) {
+	switch addr := f.Address_.(type) {
+	case string:
+		return []string{addr}, nil
+	case []interface{}:
+		a := make([]string, len(addr))
+		for i, v := range addr {
+			if v, ok := v.(string); ok {
+				a[i] = v
+			} else {
+				return nil, fmt.Errorf("unexpected element type of EthGetLogsParams.address: %T", v)
+			}
+		}
+		return a, nil
+	case nil:
+		return []string{}, nil
+	default:
+		return nil, fmt.Errorf("unexpected type of EthGetLogsParams.address: %T", addr)
+	}
 }
 
 type EthGetLogsResult struct {
