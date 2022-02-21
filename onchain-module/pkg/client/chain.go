@@ -103,6 +103,7 @@ func MakeGenTxOpts(accountID string) GenTxOpts {
 		return &bind.TransactOpts{
 			From:     common.HexToAddress(hex.EncodeToString(addr[12:32])),
 			GasLimit: 0,
+			Context:  ctx,
 		}
 	}
 }

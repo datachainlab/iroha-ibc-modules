@@ -18,6 +18,7 @@ type TruffleContractConfig struct {
 	simpleTokenAddress       common.Address
 	ics20BankAddress         common.Address
 	ics20TransferBankAddress common.Address
+	ethMultisigClientAddress common.Address
 }
 
 func NewTruffleContractConfig(networkID int, buildPath string) TruffleContractConfig {
@@ -59,6 +60,11 @@ func NewTruffleContractConfig(networkID int, buildPath string) TruffleContractCo
 		c.ics20TransferBankAddress = common.HexToAddress(string(n.Address))
 	}
 
+	{
+		n := truffle.UnmarshallConfig(networkIDStr, buildPath, "MultisigClient.json")
+		c.ethMultisigClientAddress = common.HexToAddress(string(n.Address))
+	}
+
 	return c
 }
 
@@ -88,4 +94,8 @@ func (c TruffleContractConfig) GetICS20BankAddress() common.Address {
 
 func (c TruffleContractConfig) GetICS20TransferBankAddress() common.Address {
 	return c.ics20TransferBankAddress
+}
+
+func (c TruffleContractConfig) GetEthMultisigClientAddress() common.Address {
+	return c.ethMultisigClientAddress
 }

@@ -40,4 +40,10 @@ contract Main {
         emit LibraryPublicCalled(success, result);
     }
 
+    event Signer(address signer);
+    function verify(bytes32 _message, uint8 _v, bytes32 _r, bytes32 _s) public view returns (address) {
+        address signer = ecrecover(_message, _v, _r, _s);
+        return signer;
+    }
+
 }

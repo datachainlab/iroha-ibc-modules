@@ -78,6 +78,8 @@ type Chain struct {
 	ICS20Transfer irohaeth.Ics20transferbank
 	ICS20Bank     irohaeth.Ics20bank
 
+	MultisigClient irohaeth.Multisigclient
+
 	chainID int64
 
 	ContractConfig ContractConfig
@@ -103,6 +105,7 @@ type ContractConfig interface {
 	GetSimpleTokenAddress() common.Address
 	GetICS20TransferBankAddress() common.Address
 	GetICS20BankAddress() common.Address
+	GetEthMultisigClientAddress() common.Address
 }
 
 func NewChain(t *testing.T, chainID int64, client client.Client, config ContractConfig, accountIds []string, ibcID uint64) *Chain {
@@ -131,6 +134,11 @@ func NewChain(t *testing.T, chainID int64, client client.Client, config Contract
 		t.Error(err)
 	}
 
+	multisigClient, err := irohaeth.NewMultisigclient(config.GetEthMultisigClientAddress(), client)
+	if err != nil {
+		t.Error(err)
+	}
+
 	return &Chain{
 		t:              t,
 		client:         client,
@@ -140,12 +148,13 @@ func NewChain(t *testing.T, chainID int64, client client.Client, config Contract
 		keys:           make(map[uint32]*ecdsa.PrivateKey),
 		IBCID:          ibcID,
 
-		IBCHost:       *ibcHost,
-		IBCHandler:    *ibcHandler,
-		IBCIdentifier: *ibcIdentifier,
-		SimpleToken:   *simpletoken,
-		ICS20Transfer: *ics20transfer,
-		ICS20Bank:     *ics20bank,
+		IBCHost:        *ibcHost,
+		IBCHandler:     *ibcHandler,
+		IBCIdentifier:  *ibcIdentifier,
+		SimpleToken:    *simpletoken,
+		ICS20Transfer:  *ics20transfer,
+		ICS20Bank:      *ics20bank,
+		MultisigClient: *multisigClient,
 	}
 }
 

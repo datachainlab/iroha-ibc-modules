@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "compile": "truffle compile",
-    "migrate": "truffle migrate --reset"
+    "migrate": "truffle migrate --reset",
+    "compile:ibc": "cd node_modules/@datachainlab/ibc-ethmultisig-client && truffle compile",
+    "postinstall": "npm run compile:ibc"
   },
   "author": "",
   "license": "MIT",
@@ -12,7 +14,8 @@
     "node": "16.x"
   },
   "dependencies": {
-    "@hyperledger-labs/yui-ibc-solidity": "git+https://github.com/hyperledger-labs/yui-ibc-solidity.git#0f917e10509b4f6a3295518a278d7a8a1e4e90a5"
+    "@hyperledger-labs/yui-ibc-solidity": "git+https://github.com/hyperledger-labs/yui-ibc-solidity.git#0f917e10509b4f6a3295518a278d7a8a1e4e90a5",
+    "@datachainlab/ibc-ethmultisig-client": "git+https://github.com/datachainlab/ibc-ethmultisig-client.git#5f9cc55814c087c9a4896a94e64b32b92d01172f"
   },
   "devDependencies": {
     "@truffle/contract-schema": "^3.4.4",

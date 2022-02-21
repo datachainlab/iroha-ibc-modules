@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/datachainlab/ibc-ethmultisig-client/pkg/contract/multisigclient"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/signer/core"
 	"github.com/hyperledger-labs/yui-ibc-solidity/pkg/contract/ibchandler"
@@ -214,5 +215,29 @@ func NewIcs20bank(address common.Address, client client.Client) (*Ics20bank, err
 	return &Ics20bank{
 		Ics20bank:     *ics20Bank,
 		BoundContract: boundContract,
+	}, nil
+}
+
+type Multisigclient struct {
+	multisigclient.Multisigclient
+	BoundContract
+}
+
+func NewMultisigclient(address common.Address, client client.Client) (*Multisigclient, error) {
+	multisigClient, err := multisigclient.NewMultisigclient(address, client)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedABI, err := abi.JSON(strings.NewReader(multisigclient.MultisigclientABI))
+	if err != nil {
+		return nil, err
+	}
+
+	boundContract := NewBoundContract(address, parsedABI, client)
+
+	return &Multisigclient{
+		Multisigclient: *multisigClient,
+		BoundContract:  boundContract,
 	}, nil
 }

@@ -1,3 +1,4 @@
+const ECRecovery = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ECRecovery");
 const IBCHost = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCHost");
 const IBCClient = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCClient");
 const IBCConnection = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCConnection");
@@ -9,10 +10,11 @@ const MockClient = artifacts.require("@hyperledger-labs/yui-ibc-solidity/MockCli
 const SimpleToken = artifacts.require("@hyperledger-labs/yui-ibc-solidity/SimpleToken");
 const ICS20TransferBank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20TransferBank");
 const ICS20Bank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20Bank");
+const MultisigClient = artifacts.require("@datachainlab/ibc-ethmultisig-client/MultisigClient");
 
 module.exports = async function(deployer) {
   await deployer.deploy(IBCIdentifier);
-  await deployer.link(IBCIdentifier, [IBCHost, IBCHandler, MockClient]);
+  await deployer.link(IBCIdentifier, [IBCHost, IBCHandler, MockClient, MultisigClient]);
 
   await deployer.deploy(IBCMsgs);
   await deployer.link(IBCMsgs, [IBCClient, IBCConnection, IBCChannel, IBCHandler]);
@@ -34,4 +36,6 @@ module.exports = async function(deployer) {
   await deployer.deploy(SimpleToken, "simple", "simple", 1000000);
   await deployer.deploy(ICS20Bank)
   await deployer.deploy(ICS20TransferBank, IBCHost.address, IBCHandler.address, ICS20Bank.address);
+
+  await deployer.deploy(MultisigClient);
 };
