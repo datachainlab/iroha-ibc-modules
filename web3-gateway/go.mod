@@ -8,7 +8,7 @@ require (
 	github.com/go-kit/kit v0.12.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/hashicorp/go-memdb v1.3.2
-	github.com/hyperledger/burrow v0.29.7
+	github.com/hyperledger/burrow v0.34.4
 	github.com/jackc/pgx/v4 v4.14.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/spf13/cobra v1.2.1
@@ -20,5 +20,6 @@ require (
 
 replace (
 	github.com/datachainlab/iroha-ibc-modules/iroha-go => ../iroha-go
+	github.com/hyperledger/burrow => github.com/datachainlab/burrow v0.0.0-20220222053342-657627599a4f
 	github.com/perlin-network/life => github.com/silasdavis/life v0.0.0-20191009191257-e9c2a5fdbc96
 )

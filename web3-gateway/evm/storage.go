@@ -74,6 +74,10 @@ func (i storage) UpdateAccount(account *burrow.Account) error {
 	return i.dbExecer.UpsertBurrowAccountDataByAddress(account.Address.String(), data)
 }
 
+func (i storage) RemoveAccount(address crypto.Address) error {
+	return i.dbExecer.DeleteBurrowAccountKeyValueByAddress(address.String())
+}
+
 func (i storage) GetStorage(address crypto.Address, key binary.Word256) (value []byte, err error) {
 	kv, err := i.dbExecer.GetBurrowAccountKeyValueByAddressAndKey(address.String(), key.String())
 	if err != nil {
@@ -90,10 +94,10 @@ func (i storage) GetStorage(address crypto.Address, key binary.Word256) (value [
 	return
 }
 
-func (i storage) RemoveAccount(address crypto.Address) error {
-	return i.dbExecer.DeleteBurrowAccountKeyValueByAddress(address.String())
-}
-
-func (i storage) SetStorage(crypto.Address, binary.Word256, []byte) error {
-	return nil
+func (i storage) SetStorage(address crypto.Address, key binary.Word256, value []byte) error {
+	return i.dbExecer.UpsertBurrowAccountKeyValue(
+		address.String(),
+		hex.EncodeToString(key.Bytes()),
+		hex.EncodeToString(value),
+	)
 }

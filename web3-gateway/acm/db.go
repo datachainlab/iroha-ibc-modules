@@ -9,17 +9,15 @@ type DB interface {
 	All() ([]*Account, error)
 	GetByIrohaAccountID(accountID string) (*Account, error)
 	GetByIrohaAddress(address string) (*Account, error)
-	GetByEthereumAddress(address string) (*Account, error)
 }
 
 var _ DB = (*MemDB)(nil)
 
 const (
-	MemDBAccountTable                = "account"
-	MemDBAccountIndexId              = "id"
-	MemDBAccountIndexIrohaAccountId  = "iroha_account_id"
-	MemDBAccountIndexIrohaAddress    = "iroha_address"
-	MemDBAccountIndexEthereumAddress = "ethereum_address"
+	MemDBAccountTable               = "account"
+	MemDBAccountIndexId             = "id"
+	MemDBAccountIndexIrohaAccountId = "iroha_account_id"
+	MemDBAccountIndexIrohaAddress   = "iroha_address"
 )
 
 type MemDB struct {
@@ -79,18 +77,6 @@ func (m MemDB) GetByIrohaAddress(address string) (*Account, error) {
 	return raw.(*Account), nil
 }
 
-func (m MemDB) GetByEthereumAddress(address string) (*Account, error) {
-	txn := m.db.Txn(false)
-	raw, err := txn.First(MemDBAccountTable, MemDBAccountIndexEthereumAddress, address)
-	if err != nil {
-		return nil, err
-	} else if raw == nil {
-		return nil, ErrNotFound
-	}
-
-	return raw.(*Account), nil
-}
-
 func NewMemDB() (DB, error) {
 	schema := &memdb.DBSchema{
 		Tables: map[string]*memdb.TableSchema{
@@ -111,11 +97,6 @@ func NewMemDB() (DB, error) {
 						Name:    MemDBAccountIndexIrohaAddress,
 						Unique:  true,
 						Indexer: &memdb.StringFieldIndex{Field: "IrohaAddress"},
-					},
-					MemDBAccountIndexEthereumAddress: {
-						Name:    MemDBAccountIndexEthereumAddress,
-						Unique:  true,
-						Indexer: &memdb.StringFieldIndex{Field: "EthereumAddress"},
 					},
 				},
 			},

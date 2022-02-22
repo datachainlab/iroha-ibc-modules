@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"errors"
@@ -9,11 +8,10 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	burrow "github.com/hyperledger/burrow/acm"
 	"github.com/hyperledger/burrow/crypto"
-	x "github.com/hyperledger/burrow/encoding/hex"
 	"github.com/hyperledger/burrow/logging"
 	"github.com/hyperledger/burrow/rpc/web3"
 
@@ -128,13 +126,13 @@ func (e ethService) Web3ClientVersion() (*web3.Web3ClientVersionResult, error) {
 }
 
 func (e ethService) Web3Sha3(params *web3.Web3Sha3Params) (*web3.Web3Sha3Result, error) {
-	data, err := x.DecodeToBytes(params.Data)
+	data, err := hexutil.Decode(params.Data)
 	if err != nil {
 		return nil, err
 	}
 
 	return &web3.Web3Sha3Result{
-		HashedData: x.EncodeBytes(crypto.Keccak256(data)),
+		HashedData: hexutil.Encode(crypto.Keccak256(data)),
 	}, nil
 }
 
@@ -148,7 +146,7 @@ func (e ethService) NetPeerCount() (*web3.NetPeerCountResult, error) {
 
 func (e ethService) NetVersion() (*web3.NetVersionResult, error) {
 	return &web3.NetVersionResult{
-		ChainID: x.EncodeNumber(uint64(networkID)),
+		ChainID: hexutil.EncodeUint64(uint64(networkID)),
 	}, nil
 }
 
@@ -167,7 +165,7 @@ func (e ethService) EthBlockNumber() (*web3.EthBlockNumberResult, error) {
 }
 
 func (e ethService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, error) {
-	input, err := x.DecodeToBytes(params.Transaction.Data)
+	input, err := hexutil.Decode(params.Transaction.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -188,13 +186,13 @@ func (e ethService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, er
 	}
 
 	return &web3.EthCallResult{
-		ReturnValue: x.EncodeBytes(res),
+		ReturnValue: hexutil.Encode(res),
 	}, nil
 }
 
 func (e ethService) EthChainId() (*web3.EthChainIdResult, error) {
 	return &web3.EthChainIdResult{
-		ChainId: x.EncodeNumber(uint64(chainID)),
+		ChainId: hexutil.EncodeUint64(uint64(chainID)),
 	}, nil
 }
 
@@ -239,7 +237,7 @@ func (e ethService) EthGetBlockByNumber(params *web3.EthGetBlockByNumberParams) 
 			return
 		})
 	default:
-		height, err = strconv.ParseUint(x.RemovePrefix(params.BlockNumber), 16, 64)
+		height, err = hexutil.DecodeUint64(params.BlockNumber)
 	}
 	if err != nil {
 		return nil, err
@@ -363,7 +361,7 @@ func (e ethService) EthGetLogs(params *EthGetLogsParams) (*EthGetLogsResult, err
 	case "earliest":
 		filterOpts = append(filterOpts, db.FromBlockOption(1))
 	default:
-		height, err := strconv.ParseUint(x.RemovePrefix(params.FromBlock), 10, 64)
+		height, err := strconv.ParseUint(util.RemoveHexPrefix(params.FromBlock), 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -392,7 +390,7 @@ func (e ethService) EthGetLogs(params *EthGetLogsParams) (*EthGetLogsResult, err
 	case "earliest":
 		filterOpts = append(filterOpts, db.ToBlockOption(1))
 	default:
-		height, err := strconv.ParseUint(x.RemovePrefix(params.ToBlock), 10, 64)
+		height, err := strconv.ParseUint(util.RemoveHexPrefix(params.ToBlock), 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -623,7 +621,7 @@ func (e ethService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 
 	accountID := acc.GetIrohaAccountID()
 	contractAddress := util.ToIrohaHexString(params.To)
-	input := x.RemovePrefix(params.Data)
+	input := util.RemoveHexPrefix(params.Data)
 
 	tx := command.BuildTransaction(
 		command.BuildPayload(
@@ -657,61 +655,62 @@ func (e ethService) EthSendTransaction(params *web3.EthSendTransactionParams) (*
 func (e ethService) EthSendRawTransaction(
 	params *web3.EthSendRawTransactionParams,
 ) (*web3.EthSendRawTransactionResult, error) {
-	data, err := x.DecodeToBytes(params.SignedTransactionData)
-	if err != nil {
-		return nil, err
-	}
-
-	rawTx := new(types.Transaction)
-	if err := rawTx.DecodeRLP(rlp.NewStream(bytes.NewReader(data), uint64(len(data)))); err != nil {
-		return nil, err
-	}
-
-	var signer types.Signer = types.FrontierSigner{}
-	if rawTx.Protected() {
-		signer = types.NewEIP155Signer(rawTx.ChainId())
-	}
-	// Signature to Ethereum Address
-	ethAddress, _ := types.Sender(signer, rawTx)
-	// Get Iroha Account by Ethereum Address
-	acc, err := e.accountState.GetByEthereumAddress(ethAddress.Hex())
-	if err != nil {
-		return nil, err
-	}
-	accountID := acc.GetIrohaAccountID()
-
-	//Conversion to Iroha representation
-	contractAddress := util.ToIrohaHexString(rawTx.To().Hex())
-
-	input := hex.EncodeToString(rawTx.Data())
-
-	tx := command.BuildTransaction(
-		command.BuildPayload(
-			[]*pb.Command{
-				command.CallEngine(accountID, contractAddress, input),
-			},
-			command.CreatorAccountId(accountID),
-		),
-	)
-
-	_, err = e.keyStore.SignTransaction(tx, accountID)
-	if err != nil {
-		return nil, err
-	}
-
-	txHash, err := e.irohaAPIClient.SendTransaction(context.Background(), tx)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = e.irohaAPIClient.TxStatusStream(context.Background(), txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return &web3.EthSendRawTransactionResult{
-		TransactionHash: util.ToEthereumHexString(txHash),
-	}, nil
+	return nil, errors.New("implement me")
+	//data, err := hexutil.Decode(params.SignedTransactionData)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//rawTx := new(types.Transaction)
+	//if err := rawTx.DecodeRLP(rlp.NewStream(bytes.NewReader(data), uint64(len(data)))); err != nil {
+	//	return nil, err
+	//}
+	//
+	//var signer types.Signer = types.FrontierSigner{}
+	//if rawTx.Protected() {
+	//	signer = types.NewEIP155Signer(rawTx.ChainId())
+	//}
+	//// Signature to Ethereum Address
+	//ethAddress, _ := types.Sender(signer, rawTx)
+	//// Get Iroha Account by Ethereum Address
+	//acc, err := e.accountState.GetByEthereumAddress(ethAddress.Hex())
+	//if err != nil {
+	//	return nil, err
+	//}
+	//accountID := acc.GetIrohaAccountID()
+	//
+	////Conversion to Iroha representation
+	//contractAddress := util.ToIrohaHexString(rawTx.To().Hex())
+	//
+	//input := hex.EncodeToString(rawTx.Data())
+	//
+	//tx := command.BuildTransaction(
+	//	command.BuildPayload(
+	//		[]*pb.Command{
+	//			command.CallEngine(accountID, contractAddress, input),
+	//		},
+	//		command.CreatorAccountId(accountID),
+	//	),
+	//)
+	//
+	//_, err = e.keyStore.SignTransaction(tx, accountID)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//txHash, err := e.irohaAPIClient.SendTransaction(context.Background(), tx)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//_, err = e.irohaAPIClient.TxStatusStream(context.Background(), txHash)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//return &web3.EthSendRawTransactionResult{
+	//	TransactionHash: util.ToEthereumHexString(txHash),
+	//}, nil
 }
 
 func (e ethService) EthSubmitHashrate(*web3.EthSubmitHashrateParams) (*web3.EthSubmitHashrateResult, error) {

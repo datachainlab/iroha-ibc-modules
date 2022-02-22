@@ -37,7 +37,7 @@ func Serve(cfg *config.Config) error {
 	keyStore := keyring.NewKeyStore()
 	accountState := acm.NewAccountState(accountDB)
 	for i, account := range cfg.Accounts {
-		if err = accountState.Add(account.ID, account.PrivateKey, uint64(i)); err != nil {
+		if err = accountState.Add(account.ID, uint64(i)); err != nil {
 			return err
 		}
 		if err = keyStore.Set(account.ID, account.PrivateKey); err != nil {
@@ -73,7 +73,7 @@ func Serve(cfg *config.Config) error {
 	}
 
 	// TODO configurable
-	logger, err := logconfig.New().NewLogger()
+	logger, err := logconfig.New().Logger()
 	if err != nil {
 		return err
 	}
