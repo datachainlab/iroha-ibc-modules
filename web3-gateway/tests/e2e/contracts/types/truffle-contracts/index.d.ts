@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import { ECRecoverContract } from "./ECRecover";
 import { IrohaAPIContract } from "./IrohaAPI";
 import { MigrationsContract } from "./Migrations";
 import { StorageContract } from "./Storage";
@@ -9,6 +10,7 @@ import { StorageContract } from "./Storage";
 declare global {
   namespace Truffle {
     interface Artifacts {
+      require(name: "ECRecover"): ECRecoverContract;
       require(name: "IrohaAPI"): IrohaAPIContract;
       require(name: "Migrations"): MigrationsContract;
       require(name: "Storage"): StorageContract;
@@ -16,6 +18,7 @@ declare global {
   }
 }
 
+export { ECRecoverContract, ECRecoverInstance } from "./ECRecover";
 export { IrohaAPIContract, IrohaAPIInstance } from "./IrohaAPI";
 export { MigrationsContract, MigrationsInstance } from "./Migrations";
 export { StorageContract, StorageInstance } from "./Storage";
