@@ -2,7 +2,7 @@ SOLC ?= solc
 
 .PHONY: compile
 compile:
-	$(SOLC) --no-color --bin --overwrite -o build --base-path ./contracts ./contracts/Main.sol ./contracts/IrohaExperiment.sol
+	$(SOLC) --no-color --bin --overwrite -o build --base-path ./contracts ./contracts/old-experiments/Main.sol ./contracts/old-experiments/IrohaExperiment.sol
 
 .PHONY: clean
 clean:
