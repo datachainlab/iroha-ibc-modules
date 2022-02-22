@@ -1,9 +1,10 @@
 const IBCHost = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCHost");
 const IBCHandler = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCHandler");
 const MockClient = artifacts.require("@hyperledger-labs/yui-ibc-solidity/MockClient");
-const ICS20TransferBank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20TransferBank");
-const ICS20Bank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20Bank");
 const MultisigClient = artifacts.require("@datachainlab/ibc-ethmultisig-client/MultisigClient");
+
+const ICS20TransferBank = artifacts.require("ICS20TransferBank");
+const ICS20Bank = artifacts.require("ICS20Bank");
 
 const PortTransfer = "transfer"
 const MockClientType = "mock-client"
