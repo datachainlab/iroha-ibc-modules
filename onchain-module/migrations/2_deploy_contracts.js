@@ -1,4 +1,3 @@
-const ECRecovery = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ECRecovery");
 const IBCHost = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCHost");
 const IBCClient = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCClient");
 const IBCConnection = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCConnection");
