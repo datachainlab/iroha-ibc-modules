@@ -1,14 +1,10 @@
 package acm
 
 import (
-	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/hyperledger/burrow/crypto"
-	x "github.com/hyperledger/burrow/encoding/hex"
 
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
@@ -27,8 +23,8 @@ func NewAccountState(db DB) *AccountState {
 	}
 }
 
-func (s *AccountState) Add(irohaAccountID string, privKey string, idx uint64) error {
-	acc, err := NewAccount(irohaAccountID, privKey, idx)
+func (s *AccountState) Add(irohaAccountID string, idx uint64) error {
+	acc, err := NewAccount(irohaAccountID, idx)
 	if err != nil {
 		return err
 	}
@@ -66,35 +62,13 @@ func (s *AccountState) GetByIrohaAddress(address string) (*Account, error) {
 	return account, nil
 }
 
-func (s *AccountState) GetByEthereumAddress(address string) (*Account, error) {
-	if !has0xPrefix(address) {
-		address = x.AddPrefix(address)
-	}
-	account, err := s.db.GetByEthereumAddress(strings.ToLower(address))
-	if err != nil {
-		return nil, fmt.Errorf("%w(%s)", err, address)
-	}
-
-	return account, nil
-}
-
-func has0xPrefix(s string) bool {
-	return len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
-}
-
 type Account struct {
-	Id              uint64
-	EthereumAddress string
-	IrohaAccountID  string
-	IrohaAddress    string
+	Id             uint64
+	IrohaAccountID string
+	IrohaAddress   string
 }
 
-func NewAccount(irohaAccountID string, privKey string, index uint64) (*Account, error) {
-	bz, err := hex.DecodeString(privKey)
-	if err != nil {
-		return nil, err
-	}
-
+func NewAccount(irohaAccountID string, index uint64) (*Account, error) {
 	irohaAddressHex := util.IrohaAccountIDToAddressHex(irohaAccountID)
 
 	irohaAddress, err := crypto.AddressFromHexString(irohaAddressHex)
@@ -102,20 +76,10 @@ func NewAccount(irohaAccountID string, privKey string, index uint64) (*Account, 
 		return nil, err
 	}
 
-	ethPrivKey, err := crypto.GeneratePrivateKey(bytes.NewBuffer(bz), crypto.CurveTypeSecp256k1)
-	if err != nil {
-		return nil, err
-	}
-
-	ethPubKey := ethPrivKey.GetPublicKey()
-
-	ethAddress := util.ToEthereumHexString(ethPubKey.GetAddress().String())
-
 	return &Account{
-		Id:              uint64(index),
-		EthereumAddress: ethAddress,
-		IrohaAccountID:  irohaAccountID,
-		IrohaAddress:    util.ToIrohaHexString(irohaAddress.String()),
+		Id:             index,
+		IrohaAccountID: irohaAccountID,
+		IrohaAddress:   util.ToIrohaHexString(irohaAddress.String()),
 	}, nil
 }
 
@@ -125,8 +89,4 @@ func (a *Account) GetIrohaAccountID() string {
 
 func (a *Account) GetIrohaAddress() string {
 	return a.IrohaAddress
-}
-
-func (a *Account) GetEthereumAddress() string {
-	return a.EthereumAddress
 }

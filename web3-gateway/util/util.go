@@ -2,10 +2,10 @@ package util
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"github.com/hyperledger/burrow/crypto"
-	x "github.com/hyperledger/burrow/encoding/hex"
 )
 
 func IrohaAccountIDToAddressHex(accountID string) string {
@@ -15,9 +15,29 @@ func IrohaAccountIDToAddressHex(accountID string) string {
 }
 
 func ToEthereumHexString(h string) string {
-	return strings.ToLower(x.AddPrefix(h))
+	return strings.ToLower(AddHexPrefix(h))
 }
 
 func ToIrohaHexString(h string) string {
-	return strings.ToUpper(x.RemovePrefix(h))
+	return strings.ToUpper(RemoveHexPrefix(h))
+}
+
+func AddHexPrefix(h string) string {
+	if has0xPrefix(h) {
+		return h
+	}
+
+	return fmt.Sprintf("0x%s", h)
+}
+
+func RemoveHexPrefix(h string) string {
+	if !has0xPrefix(h) {
+		return h
+	}
+
+	return strings.TrimPrefix(h, "0x")
+}
+
+func has0xPrefix(s string) bool {
+	return len(s) > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
 }

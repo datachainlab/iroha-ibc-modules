@@ -20,6 +20,22 @@ func newEventSink(height uint64) *eventSink {
 	}
 }
 
+func (s eventSink) Print(print *exec.PrintEvent) error {
+	s.Append(&exec.Event{
+		Header: &exec.Header{
+			TxType:    payload.TypeCall,
+			TxHash:    nil,
+			EventType: exec.TypePrint,
+			EventID:   exec.EventStringLogEvent(print.Address),
+			Height:    s.height,
+			Exception: nil,
+		},
+		Print: print,
+	})
+
+	return nil
+}
+
 func (s eventSink) Log(log *exec.LogEvent) error {
 	s.Append(&exec.Event{
 		Header: &exec.Header{

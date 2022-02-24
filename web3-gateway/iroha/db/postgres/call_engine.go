@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	x "github.com/hyperledger/burrow/encoding/hex"
-
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
 
 func (c *postgresExecer) GetEngineTransaction(txHash string) (*entity.EngineTransaction, error) {
-	txHash = strings.ToLower(x.RemovePrefix(txHash))
+	txHash = strings.ToLower(util.RemoveHexPrefix(txHash))
 
 	var tx entity.EngineTransaction
 
@@ -46,7 +45,7 @@ WHERE ec.tx_hash = $1
 }
 
 func (c *postgresExecer) GetEngineReceipt(txHash string) (*entity.EngineReceipt, error) {
-	txHash = strings.ToLower(x.RemovePrefix(txHash))
+	txHash = strings.ToLower(util.RemoveHexPrefix(txHash))
 
 	var receipt entity.EngineReceipt
 
@@ -80,7 +79,7 @@ WHERE ec.tx_hash = $1
 }
 
 func (c *postgresExecer) GetEngineReceiptLogsByTxHash(txHash string) ([]*entity.EngineReceiptLog, error) {
-	txHash = strings.ToLower(x.RemovePrefix(txHash))
+	txHash = strings.ToLower(util.RemoveHexPrefix(txHash))
 
 	var logs []*entity.EngineReceiptLog
 
@@ -168,7 +167,7 @@ func (c *postgresExecer) GetEngineReceiptLogsByFilters(opts ...db.LogFilterOptio
 			if i > 0 {
 				sep = ", "
 			}
-			addr = x.RemovePrefix(addr)
+			addr = util.RemoveHexPrefix(addr)
 			addressStr = fmt.Sprintf("%s%sLOWER('%s'), UPPER('%s')", addressStr, sep, addr, addr)
 		}
 		conditions.WriteString(fmt.Sprintf("address IN (%s)", addressStr))
