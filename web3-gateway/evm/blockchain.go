@@ -4,8 +4,11 @@ import (
 	"encoding/binary"
 	"time"
 
+	"github.com/hyperledger/burrow/execution/engine"
 	"github.com/hyperledger/burrow/execution/errors"
 )
+
+var _ engine.Blockchain = (*blockchain)(nil)
 
 type blockchain struct {
 	blockHeight uint64
@@ -14,6 +17,10 @@ type blockchain struct {
 
 func newBlockchain() *blockchain {
 	return &blockchain{}
+}
+
+func (b *blockchain) ChainID() string {
+	return ""
 }
 
 func (b *blockchain) LastBlockHeight() uint64 {

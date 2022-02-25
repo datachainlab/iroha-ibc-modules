@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	x "github.com/hyperledger/burrow/encoding/hex"
-
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
@@ -37,6 +35,7 @@ type EVMStorageExecer interface {
 	UpsertBurrowAccountDataByAddress(address string, data string) error
 	GetBurrowAccountKeyValueByAddressAndKey(address, key string) (*entity.BurrowAccountKeyValue, error)
 	DeleteBurrowAccountKeyValueByAddress(address string) error
+	UpsertBurrowAccountKeyValue(address string, key string, value string) error
 }
 
 type NativeContractExecer interface {
@@ -111,7 +110,7 @@ func TopicsOption(topics [][]string) LogFilterOption {
 			case 0:
 				// skip
 			case 1:
-				filter.Topics[i] = x.RemovePrefix(topic[0])
+				filter.Topics[i] = util.RemoveHexPrefix(topic[0])
 			default:
 				fmt.Fprintf(os.Stderr, "up to 1 topic is acceptable for each position, but %d topics are specified", len(topic))
 			}

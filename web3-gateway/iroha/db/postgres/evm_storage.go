@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	x "github.com/hyperledger/burrow/encoding/hex"
-
 	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/iroha/db/entity"
+	"github.com/datachainlab/iroha-ibc-modules/web3-gateway/util"
 )
 
 func (c *postgresExecer) GetBurrowAccountDataByAddress(address string) (*entity.BurrowAccountData, error) {
-	address = strings.ToLower(x.RemovePrefix(address))
+	address = strings.ToLower(util.RemoveHexPrefix(address))
 
 	var account entity.BurrowAccountData
 
@@ -28,8 +27,6 @@ func (c *postgresExecer) GetBurrowAccountDataByAddress(address string) (*entity.
 }
 
 func (c *postgresExecer) UpsertBurrowAccountDataByAddress(address string, data string) error {
-	address = strings.ToLower(x.RemovePrefix(address))
-
 	query := `
 insert into burrow_account_data (address, data) 
 values (lower(:address), :data) 
@@ -48,8 +45,8 @@ returning 1
 }
 
 func (c *postgresExecer) GetBurrowAccountKeyValueByAddressAndKey(address, key string) (*entity.BurrowAccountKeyValue, error) {
-	address = strings.ToLower(x.RemovePrefix(address))
-	key = strings.ToLower(x.RemovePrefix(key))
+	address = strings.ToLower(util.RemoveHexPrefix(address))
+	key = strings.ToLower(util.RemoveHexPrefix(key))
 
 	var kv entity.BurrowAccountKeyValue
 
@@ -66,8 +63,6 @@ func (c *postgresExecer) GetBurrowAccountKeyValueByAddressAndKey(address, key st
 }
 
 func (c *postgresExecer) DeleteBurrowAccountKeyValueByAddress(address string) error {
-	address = strings.ToLower(x.RemovePrefix(address))
-
 	query := `
 delete from burrow_account_key_value
 where address = lower(:address);
@@ -77,6 +72,24 @@ where address = lower(:address)
 returning 1
 `
 	if res, err := c.execer.NamedExec(query, map[string]interface{}{"address": address}); err != nil {
+		return err
+	} else if affected, err := res.RowsAffected(); err != nil {
+		return err
+	} else if affected > 0 {
+		return fmt.Errorf("account deletion failed")
+	}
+
+	return nil
+}
+
+func (c *postgresExecer) UpsertBurrowAccountKeyValue(address string, key string, value string) error {
+	query := `
+insert into burrow_account_key_value (address, key, value)
+values (lower(:address), lower(:key), :value)
+on conflict (address, key) do update set value = excluded.value
+returning 1
+`
+	if res, err := c.execer.NamedExec(query, map[string]interface{}{"address": address, "key": key, "value": value}); err != nil {
 		return err
 	} else if affected, err := res.RowsAffected(); err != nil {
 		return err
