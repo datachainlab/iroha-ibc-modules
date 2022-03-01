@@ -1,0 +1,19 @@
+{
+  "chain": {
+    "@type": "/relayer.chains.iroha.config.ChainConfig",
+    "chain_id": "ibc1",
+    "rpc_addr": "http://localhost:8645",
+    "account_id": "relayer@test",
+    "ibc_host_address": "",
+    "ibc_handler_address": ""
+  },
+  "prover": {
+    "@type": "/ibc.relay.ethmultisig.ProverConfig",
+    "diversifier": "ethmultisig-1",
+    "wallets": [{
+      "mnemonic": "canvas round flavor donkey today jaguar gesture radio achieve buzz immune mosquito",
+      "hdw_path": "m/44'/60'/0'/0/0"
+    }],
+    "prefix": "ibc"
+  }
+}

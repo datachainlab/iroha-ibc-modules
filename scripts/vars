@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+CUR_DIR=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
+ROOT_DIR=$(cd ${CUR_DIR}/../; pwd)
+CONFIG_DIR="${ROOT_DIR}/configs"
+CONTRACT_ARTIFACT_DIR="${ROOT_DIR}/onchain-module/build/contracts"
+
+# relayer
+RELAYER_DIR="${ROOT_DIR}/relayer"
+RELAYER_CONF="${ROOT_DIR}/.urelayer"
+RLY_BINARY=${RELAYER_DIR}/build/uly
+RLY="${RLY_BINARY} --home ${RELAYER_CONF}"
+
+# ibc
+IBC_ZERO="ibc0"
+NETWORK_ID_IBC_ZERO="1000"
+
+IBC_ONE="ibc1"
+NETWORK_ID_IBC_ONE="2000"
+
+PATH_NAME="ibc01"

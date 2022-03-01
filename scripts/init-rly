@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $(cd $(dirname ${BASH_SOURCE:-$0}); pwd)/vars
+rm -rf ${RELAYER_CONF} &> /dev/null
+
+${RLY} config init
+${RLY} chains add-dir ${CONFIG_DIR}/relayer/demo/
+$RLY paths add $IBC_ZERO $IBC_ONE $PATH_NAME --file=${CONFIG_DIR}/relayer/path.json
+
+IBC_HOST_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHost.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
+IBC_HANDLER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHandler.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
+
+${RLY} iroha config set-contract $IBC_ZERO \
+--ibc-host $IBC_HOST_ADDRESS \
+--ibc-handler $IBC_HANDLER_ADDRESS
+
+IBC_HOST_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHost.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
+IBC_HANDLER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHandler.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
+
+${RLY} iroha config set-contract $IBC_ONE \
+--ibc-host $IBC_HOST_ADDRESS \
+--ibc-handler $IBC_HANDLER_ADDRESS
