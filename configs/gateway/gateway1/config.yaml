@@ -1,0 +1,30 @@
+iroha:
+  api:
+    host: localhost
+    port: 50051
+    commandTimeout: 5000
+    queryTimeout: 5000
+  database:
+    postgres:
+      host: localhost
+      port: 5432
+      user: postgres
+      password: mysecretpassword
+      database: iroha_data
+gateway:
+  networkId: 1000
+  rpc:
+    host: localhost
+    port: 8545
+accounts:
+  - id: relayer@test
+    privateKey: a944b0d0a4548b69edf2fef8b14d4575decf40272b084dfad204e438192c0dd0
+  - id: carol@test
+    privateKey: 2ec6a7b95aadbafadb7ee21f17e65dc8a3e223853af5c3d1974a7f32b6720295
+  - id: dave@test
+    privateKey: 3a2e40aa0e008409282a58258dbca48857cb57bb170ff6bd5ef5de38a8f9ab0f
+  - id: querier@test
+    privateKey: f442ad01bff63a54047c078fd32692a93be9647547651baccbca79090bd33864
+
+evm:
+  querier: querier@test

@@ -10,6 +10,16 @@ module.exports = {
       port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none),
     },
+    chain_one: {
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 8545,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none),
+    },
+    chain_two: {
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 8645,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none),
+    },
   },
 
   mocha: {

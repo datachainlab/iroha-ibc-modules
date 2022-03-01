@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "compile": "truffle compile",
-    "migrate": "truffle migrate --reset"
+    "migrate": "truffle migrate --reset",
+    "migrate:one": "npm run migrate -- --network chain_one",
+    "migrate:two": "npm run migrate -- --network chain_two"
   },
   "author": "",
   "license": "MIT",

@@ -63,10 +63,77 @@ services:
       IROHA_WEB3_GATEWAY_RPC_HOST: "0.0.0.0"
     ports:
       - "8545:8545"
-    command: serve --config ./example/config.yaml
+    command: serve --config ./config/config.yaml
+    volumes:
+      - ./configs/gateway/gateway0:/root/config
+    networks:
+      - *network
+
+  iroha-node1:
+    container_name: iroha-node1
+    hostname: iroha-node1
+    image: ghcr.io/datachainlab/iroha:1.3.0-custom-irohad
+    environment:
+      - KEY=node0
+      - IROHA_POSTGRES_HOST=iroha-node1-postgres
+      - IROHA_POSTGRES_PORT=5432
+      - IROHA_POSTGRES_USER=postgres
+      - IROHA_POSTGRES_PASSWORD=mysecretpassword
+    working_dir: /opt/iroha_data
+    ports:
+      - "51051:50051"
+      - "56552:55552"
+      - "21000:20000"
+      - "8081:8080"
+    volumes:
+      - ./docker/config/node1:/opt/iroha_data:delegated
+      - blockstore1:/tmp/block_store:delegated
+    networks:
+      - *network
+    depends_on:
+      - iroha-node1-postgres
+
+  iroha-node1-postgres:
+    container_name: iroha-node1-postgres
+    hostname: iroha-node1-postgres
+    image: postgres:9.5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    command: -c 'max_prepared_transactions=100'
+    user: postgres
+    ports:
+      - "5532:5432"
+    volumes:
+      - pgdata1:/var/lib/postgresql/data
+    networks:
+      - *network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  iroha-web3-gateway1:
+    container_name: iroha-web3-gateway1
+    hostname: iroha-web3-gateway1
+    build:
+      dockerfile: ./web3-gateway/Dockerfile
+      context: ./
+    environment:
+      IROHA_WEB3_IROHA_API_HOST: "iroha-node1"
+      IROHA_WEB3_IROHA_DATABASE_POSTGRES_HOST: "iroha-node1-postgres"
+      IROHA_WEB3_GATEWAY_NETWORKID: 2000
+      IROHA_WEB3_GATEWAY_RPC_HOST: "0.0.0.0"
+    ports:
+      - "8645:8545"
+    command: serve --config ./config/config.yaml
+    volumes:
+      - ./configs/gateway/gateway1:/root/config
     networks:
       - *network
 
 volumes:
   blockstore0:
   pgdata0:
+  blockstore1:
+  pgdata1:

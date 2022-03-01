@@ -15,7 +15,6 @@ FROM alpine:3.14
 WORKDIR /root
 
 COPY --from=builder /root/web3-gateway/build/web3-gateway /usr/local/bin/web3-gateway
-COPY --from=builder /root/web3-gateway/example ./example
 
 RUN chmod +x /usr/local/bin/web3-gateway
 

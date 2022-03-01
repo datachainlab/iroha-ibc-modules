@@ -1,0 +1,240 @@
+{
+  "block_v1": {
+    "payload": {
+      "transactions": [
+        {
+          "payload": {
+            "reducedPayload": {
+              "commands": [
+                {
+                  "addPeer": {
+                    "peer": {
+                      "address": "127.0.0.1:10001",
+                      "peerKey": "340c6e76ecf30722d4e89838e1caafa77c8ab726dfe4fc40a0d70c65e932b99a"
+                    }
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "admin",
+                    "permissions": [
+                      "can_add_asset_qty",
+                      "can_add_domain_asset_qty",
+                      "can_add_peer",
+                      "can_add_signatory",
+                      "can_append_role",
+                      "can_create_account",
+                      "can_create_asset",
+                      "can_create_domain",
+                      "can_create_role",
+                      "can_detach_role",
+                      "can_get_all_acc_ast",
+                      "can_get_all_acc_ast_txs",
+                      "can_get_all_acc_detail",
+                      "can_get_all_acc_txs",
+                      "can_get_all_accounts",
+                      "can_get_all_signatories",
+                      "can_get_all_txs",
+                      "can_get_blocks",
+                      "can_get_domain_acc_ast",
+                      "can_get_domain_acc_ast_txs",
+                      "can_get_domain_acc_detail",
+                      "can_get_domain_accounts",
+                      "can_get_my_acc_ast_txs",
+                      "can_get_my_acc_detail",
+                      "can_get_my_acc_txs",
+                      "can_get_my_account",
+                      "can_get_peers",
+                      "can_get_roles",
+                      "can_read_assets",
+                      "can_receive",
+                      "can_remove_peer",
+                      "can_remove_signatory",
+                      "can_set_detail",
+                      "can_set_quorum",
+                      "can_subtract_asset_qty",
+                      "can_subtract_domain_asset_qty",
+                      "can_transfer"
+                    ]
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "user",
+                    "permissions": [
+                      "can_add_signatory",
+                      "can_get_my_acc_ast",
+                      "can_get_my_acc_ast_txs",
+                      "can_get_my_acc_detail",
+                      "can_get_my_acc_txs",
+                      "can_get_my_account",
+                      "can_get_my_signatories",
+                      "can_get_my_txs",
+                      "can_grant_can_add_my_signatory",
+                      "can_grant_can_remove_my_signatory",
+                      "can_grant_can_set_my_account_detail",
+                      "can_grant_can_set_my_quorum",
+                      "can_grant_can_transfer_my_assets",
+                      "can_receive",
+                      "can_remove_signatory",
+                      "can_set_quorum",
+                      "can_transfer"
+                    ]
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "money_creator",
+                    "permissions": [
+                      "can_add_asset_qty",
+                      "can_create_asset",
+                      "can_receive",
+                      "can_transfer"
+                    ]
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "evm_admin",
+                    "permissions": [
+                      "can_call_engine",
+                      "can_get_all_engine_receipts",
+                      "can_get_domain_engine_receipts",
+                      "can_get_my_engine_receipts",
+                      "can_grant_can_call_engine_on_my_behalf"
+                    ]
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "evm_user",
+                    "permissions": [
+                      "can_call_engine",
+                      "can_get_my_engine_receipts"
+                    ]
+                  }
+                },
+                {
+                  "createRole": {
+                    "roleName": "gateway_querier",
+                    "permissions": [
+                      "can_get_blocks",
+                      "can_call_engine",
+                      "can_get_my_engine_receipts"
+                    ]
+                  }
+                },
+                {
+                  "createDomain": {
+                    "domainId": "test",
+                    "defaultRole": "user"
+                  }
+                },
+                {
+                  "createAsset": {
+                    "assetName": "coin",
+                    "domainId": "test",
+                    "precision": 2
+                  }
+                },
+                {
+                  "createAccount": {
+                    "accountName": "admin",
+                    "domainId": "test",
+                    "publicKey": "73198cfe8de231957aa5f57f366db99e412ec326d6a03da5ac02d8430c6ceb40"
+                  }
+                },
+                {
+                  "createAccount": {
+                    "accountName": "relayer",
+                    "domainId": "test",
+                    "publicKey": "8d5a47df36a28414462b6fe5e23239014ad5caacdd0e3bb79618c64c48340b96"
+                  }
+                },
+                {
+                  "createAccount": {
+                    "accountName": "querier",
+                    "domainId": "test",
+                    "publicKey": "4c2e5ad2a8615edb115bdf3179e28eba65d78176354de4a8967fe3fa56b7c8d4"
+                  }
+                },
+                {
+                  "createAccount": {
+                    "accountName": "carol",
+                    "domainId": "test",
+                    "publicKey": "9d1c4d7fc5719aa002531b0a1b09c4709704bb83921ea09d1c563ea9254da907"
+                  }
+                },
+                {
+                  "createAccount": {
+                    "accountName": "dave",
+                    "domainId": "test",
+                    "publicKey": "3a2e40aa0e008409282a58258dbca48857cb57bb170ff6bd5ef5de38a8f9ab0f"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "admin@test",
+                    "roleName": "admin"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "admin@test",
+                    "roleName": "money_creator"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "admin@test",
+                    "roleName": "evm_admin"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "relayer@test",
+                    "roleName": "admin"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "relayer@test",
+                    "roleName": "money_creator"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "relayer@test",
+                    "roleName": "evm_admin"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "carol@test",
+                    "roleName": "evm_user"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "dave@test",
+                    "roleName": "evm_user"
+                  }
+                },
+                {
+                  "appendRole": {
+                    "accountId": "querier@test",
+                    "roleName": "gateway_querier"
+                  }
+                }
+              ],
+              "quorum": 1
+            }
+          }
+        }
+      ],
+      "txNumber": 1,
+      "height": "1",
+      "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}
