@@ -12,6 +12,7 @@
     "node": "16.x"
   },
   "dependencies": {
+    "@datachainlab/ibc-ethmultisig-client": "git+https://github.com/datachainlab/ibc-ethmultisig-client.git#8dbe5e70cd892b6a349ef4ab2837a85b2c445597",
     "@hyperledger-labs/yui-ibc-solidity": "git+https://github.com/hyperledger-labs/yui-ibc-solidity.git#0f917e10509b4f6a3295518a278d7a8a1e4e90a5"
   },
   "devDependencies": {
