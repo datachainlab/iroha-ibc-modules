@@ -31,7 +31,8 @@ type Iroha struct {
 }
 
 type Gateway struct {
-	Rpc struct {
+	NetworkID uint64 `json:"networkId" yaml:"networkId"`
+	Rpc       struct {
 		Host string `json:"host" yaml:"host"`
 		Port int    `json:"port" yaml:"port"`
 	} `json:"rpc" yaml:"rpc"`

@@ -80,6 +80,7 @@ func Serve(cfg *config.Config) error {
 
 	web3Server := NewHTTPServer(
 		NewEthService(
+			cfg.Gateway.NetworkID,
 			accountState,
 			keyStore,
 			irohaApiClient,
