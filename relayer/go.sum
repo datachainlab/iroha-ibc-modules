@@ -174,8 +174,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:ma
 github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/danieljoos/wincred v1.0.2 h1:zf4bhty2iLuwgjgpraD2E9UbvO+fe54XXGJbOwe23fU=
 github.com/danieljoos/wincred v1.0.2/go.mod h1:SnuYRW9lp1oJrZX/dXJqr0cPK5gYXqx3EJbmjhLdK9U=
-github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220222085954-8dbe5e70cd89 h1:T9e3YmQCyIwExj95wR4TJ/2DyVVN6gEcNZ4u8hLxDg0=
-github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220222085954-8dbe5e70cd89/go.mod h1:cCRaDlHLpWxEY7QCbz5aVKQNwRKxevNd+UIR7zW6hPY=
+github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220302030309-1191ec233811 h1:lCyD2DkoxltTgGmHeyEoP1DtlP/bTn79WBnON9m7KPA=
+github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220302030309-1191ec233811/go.mod h1:cCRaDlHLpWxEY7QCbz5aVKQNwRKxevNd+UIR7zW6hPY=
 github.com/datachainlab/ibc-mock-client v0.0.0-20210801010718-05f8b1087574/go.mod h1:yz5E2DpB3FJZZjagC4HcW51km5HesF1tFQRr6k0HQvA=
 github.com/datachainlab/ibc-mock-client v0.0.0-20220113022533-5baf3f100d16/go.mod h1:yz5E2DpB3FJZZjagC4HcW51km5HesF1tFQRr6k0HQvA=
 github.com/datachainlab/solidity-protobuf/protobuf-solidity/src/protoc/go v0.0.0-20211215073805-59460caf6e59/go.mod h1:qEfy4NhH1wQB+j56MqpQGJMDX4DS56hNnF535upHygI=

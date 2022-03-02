@@ -11,7 +11,7 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/cosmos/cosmos-sdk v0.43.0-beta1
 	github.com/cosmos/ibc-go v1.0.0-beta1
-	github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220222085954-8dbe5e70cd89
+	github.com/datachainlab/ibc-ethmultisig-client v0.1.1-0.20220302030309-1191ec233811
 	github.com/ethereum/go-ethereum v1.9.25
 	github.com/gogo/protobuf v1.3.3
 	github.com/hyperledger-labs/yui-ibc-solidity v0.0.0-20220214080515-0f917e10509b
