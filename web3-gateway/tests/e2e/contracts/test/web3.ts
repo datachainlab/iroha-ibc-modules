@@ -11,6 +11,11 @@ contract("Web3", function (accounts) {
     assert.equal(chainId, 2147483647);
   });
 
+  it("should be networkId is one", async function () {
+    const networkId = await web3.eth.net.getId();
+    assert.equal(networkId, 1000);
+  });
+
   it("should be estimateGas returns zero", async function () {
     const gas = await web3.eth.estimateGas({});
     assert.equal(gas, 0);

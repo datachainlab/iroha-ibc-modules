@@ -3,9 +3,11 @@ const IBCHandler = artifacts.require("@hyperledger-labs/yui-ibc-solidity/IBCHand
 const MockClient = artifacts.require("@hyperledger-labs/yui-ibc-solidity/MockClient");
 const ICS20TransferBank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20TransferBank");
 const ICS20Bank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20Bank");
+const MultisigClient = artifacts.require("@datachainlab/ibc-ethmultisig-client/MultisigClient");
 
 const PortTransfer = "transfer"
 const MockClientType = "mock-client"
+const MultisigClientType = "ethmultisig-client"
 
 module.exports = async function (deployer) {
   const ibcHost = await IBCHost.deployed();
@@ -16,6 +18,7 @@ module.exports = async function (deployer) {
     () => ibcHost.setIBCModule(IBCHandler.address),
     () => ibcHandler.bindPort(PortTransfer, ICS20TransferBank.address),
     () => ibcHandler.registerClient(MockClientType, MockClient.address),
+    () => ibcHandler.registerClient(MultisigClientType, MultisigClient.address),
     () => ics20Bank.setOperator(ICS20TransferBank.address),
   ]) {
     const result = await f();

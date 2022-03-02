@@ -1,5 +1,3 @@
-import Common from "ethereumjs-common";
-import { Transaction, TxData } from "ethereumjs-tx";
 import { StorageInstance } from "../types/truffle-contracts";
 import { Add, Execute, Remove } from "../types/truffle-contracts/Storage";
 import Accounts = Truffle.Accounts;
@@ -10,12 +8,6 @@ const Storage = artifacts.require("Storage");
 contract("Storage", function (accounts: Accounts) {
   let contract: StorageInstance;
   let latestBlockHeight: number;
-
-  const adminPrivateKey = Buffer.from(
-    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70",
-    "hex"
-  );
-  const adminAddress = accounts[3];
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const zeroHash =

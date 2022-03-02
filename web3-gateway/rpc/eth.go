@@ -29,7 +29,6 @@ import (
 
 const (
 	chainID       = math.MaxInt32 // TODO configurable?
-	networkID     = math.MaxInt32 // TODO configurable?
 	hexZero       = "0x0"
 	hexOne        = "0x1"
 	zeroHash      = "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -95,6 +94,7 @@ type EthService interface {
 }
 
 type ethService struct {
+	networkID         uint64
 	accountState      *acm.AccountState
 	keyStore          keyring.KeyStore
 	irohaAPIClient    api.ApiClient
@@ -104,6 +104,7 @@ type ethService struct {
 }
 
 func NewEthService(
+	networkID uint64,
 	accountState *acm.AccountState,
 	keyStore keyring.KeyStore,
 	irohaAPIClient api.ApiClient,
@@ -112,6 +113,7 @@ func NewEthService(
 	querier string,
 ) EthService {
 	return &ethService{
+		networkID:         networkID,
 		accountState:      accountState,
 		keyStore:          keyStore,
 		irohaAPIClient:    irohaAPIClient,
@@ -146,7 +148,7 @@ func (e ethService) NetPeerCount() (*web3.NetPeerCountResult, error) {
 
 func (e ethService) NetVersion() (*web3.NetVersionResult, error) {
 	return &web3.NetVersionResult{
-		ChainID: hexutil.EncodeUint64(uint64(networkID)),
+		ChainID: hexutil.EncodeUint64(e.networkID),
 	}, nil
 }
 
@@ -192,7 +194,7 @@ func (e ethService) EthCall(params *web3.EthCallParams) (*web3.EthCallResult, er
 
 func (e ethService) EthChainId() (*web3.EthChainIdResult, error) {
 	return &web3.EthChainIdResult{
-		ChainId: hexutil.EncodeUint64(uint64(chainID)),
+		ChainId: hexutil.EncodeUint64(chainID),
 	}, nil
 }
 

@@ -12,6 +12,7 @@ iroha:
       password: mysecretpassword
       database: iroha_data
 gateway:
+  networkId: 1000
   rpc:
     host: localhost
     port: 8545

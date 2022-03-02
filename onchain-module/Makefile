@@ -61,3 +61,8 @@ endif
 .PHONY: integration-test
 integration-test:
 	go test -v ./tests/integration/... -count=1
+
+.PHONY: migrate-e2e
+migrate-e2e:
+	npm run migrate:one
+	npm run migrate:two

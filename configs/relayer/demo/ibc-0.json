@@ -1,0 +1,19 @@
+{
+  "chain": {
+    "@type": "/relayer.chains.iroha.config.ChainConfig",
+    "chain_id": "ibc0",
+    "rpc_addr": "http://localhost:8545",
+    "account_id": "relayer@test",
+    "ibc_host_address": "",
+    "ibc_handler_address": ""
+  },
+  "prover": {
+    "@type": "/ibc.relay.ethmultisig.ProverConfig",
+    "diversifier": "ethmultisig-0",
+    "wallets": [{
+      "mnemonic": "math razor capable expose worth grape metal sunset metal sudden usage scheme",
+      "hdw_path": "m/44'/60'/0'/0/0"
+    }],
+    "prefix": "ibc"
+  }
+}

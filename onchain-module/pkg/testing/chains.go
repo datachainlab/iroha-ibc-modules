@@ -78,8 +78,6 @@ type Chain struct {
 	ICS20Transfer irohaeth.Ics20transferbank
 	ICS20Bank     irohaeth.Ics20bank
 
-	chainID int64
-
 	ContractConfig ContractConfig
 
 	accountIds []string
@@ -105,7 +103,7 @@ type ContractConfig interface {
 	GetICS20BankAddress() common.Address
 }
 
-func NewChain(t *testing.T, chainID int64, client client.Client, config ContractConfig, accountIds []string, ibcID uint64) *Chain {
+func NewChain(t *testing.T, client client.Client, config ContractConfig, accountIds []string, ibcID uint64) *Chain {
 	ibcHost, err := irohaeth.NewIbchost(config.GetIBCHostAddress(), client)
 	if err != nil {
 		t.Error(err)
@@ -134,7 +132,6 @@ func NewChain(t *testing.T, chainID int64, client client.Client, config Contract
 	return &Chain{
 		t:              t,
 		client:         client,
-		chainID:        chainID,
 		ContractConfig: config,
 		accountIds:     accountIds,
 		keys:           make(map[uint32]*ecdsa.PrivateKey),
@@ -167,14 +164,6 @@ func (chain *Chain) CallOpts(ctx context.Context, index uint32) *bind.CallOpts {
 		From:    opts.From,
 		Context: opts.Context,
 	}
-}
-
-func (chain *Chain) ChainID() int64 {
-	return chain.chainID
-}
-
-func (chain *Chain) ChainIDString() string {
-	return fmt.Sprint(chain.chainID)
 }
 
 func (chain *Chain) GetCommitmentPrefix() []byte {

@@ -1,0 +1,18 @@
+syntax = "proto3";
+package relayer.chains.iroha.config;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/hyperledger-labs/yui-relayer/chains/iroha";
+option (gogoproto.goproto_getters_all) = false;
+
+message ChainConfig {
+  string chain_id = 1;
+  string rpc_addr = 2;
+
+  // use for relayer
+  string account_id = 3;
+
+  string ibc_host_address = 5;
+  string ibc_handler_address = 6;
+}

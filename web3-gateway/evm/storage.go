@@ -84,7 +84,7 @@ func (i storage) GetStorage(address crypto.Address, key binary.Word256) (value [
 		return nil, err
 	}
 
-	if len(kv.Value) > 0 {
+	if kv != nil && len(kv.Value) > 0 {
 		value, err = hex.DecodeString(kv.Value)
 		if err != nil {
 			return nil, err

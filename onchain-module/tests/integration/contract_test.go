@@ -3,7 +3,6 @@ package integration
 import (
 	"context"
 	"fmt"
-	"math"
 	"math/big"
 	"strings"
 	"testing"
@@ -32,11 +31,12 @@ func (suite *ContractTestSuite) SetupTest() {
 	chainClient, err := client.NewETHClient("http://127.0.0.1:8545", clienttypes.MockClient)
 	suite.Require().NoError(err)
 
+	networkID := 1000
 	accountIds := []string{"relayer@test", "alice@test", "bob@test"}
-	contractConfig := ibctesting.NewTruffleContractConfig(math.MaxInt32, "../../build/contracts")
+	contractConfig := ibctesting.NewTruffleContractConfig(networkID, "../../build/contracts")
 
-	suite.chainA = ibctesting.NewChain(suite.T(), math.MaxInt32, *chainClient, contractConfig, accountIds, uint64(time.Now().UnixNano()))
-	suite.chainB = ibctesting.NewChain(suite.T(), math.MaxInt32, *chainClient, contractConfig, accountIds, uint64(time.Now().UnixNano()))
+	suite.chainA = ibctesting.NewChain(suite.T(), *chainClient, contractConfig, accountIds, uint64(time.Now().UnixNano()))
+	suite.chainB = ibctesting.NewChain(suite.T(), *chainClient, contractConfig, accountIds, uint64(time.Now().UnixNano()))
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), suite.chainA, suite.chainB)
 }
 
