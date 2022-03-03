@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.9;
 
-import "./ICS20Transfer.sol";
-import "./IICS20Bank.sol";
+import "./IrohaICS20Transfer.sol";
+import "./IIrohaICS20Bank.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHandler.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHost.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/types/App.sol";
 
-contract ICS20TransferBank is ICS20Transfer {
-    IICS20Bank bank;
+contract IrohaICS20TransferBank is IrohaICS20Transfer {
+    IIrohaICS20Bank bank;
 
-    constructor(IBCHost host_, IBCHandler ibcHandler_, IICS20Bank bank_) ICS20Transfer(host_, ibcHandler_) {
+    constructor(IBCHost host_, IBCHandler ibcHandler_, IIrohaICS20Bank bank_) IrohaICS20Transfer(host_, ibcHandler_) {
         bank = bank_;
     }
 

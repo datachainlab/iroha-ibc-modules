@@ -5,9 +5,9 @@ import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "./IICS20Bank.sol";
+import "./IIrohaICS20Bank.sol";
 
-contract ICS20Bank is Context, AccessControl, IICS20Bank {
+contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
     using Address for address;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -26,30 +26,30 @@ contract ICS20Bank is Context, AccessControl, IICS20Bank {
     }
 
     function balanceOf(address account, string calldata id) virtual external view returns (uint256) {
-        require(account != address(0), "ICS20Bank: balance query for the zero address");
+        require(account != address(0), "IrohaICS20Bank: balance query for the zero address");
         return _balances[id][account];
     }
 
     function transferFrom(address from, address to, string calldata id, uint256 amount) override virtual external {
-        require(to != address(0), "ICS20Bank: transfer to the zero address");
+        require(to != address(0), "IrohaICS20Bank: transfer to the zero address");
         require(
             from == _msgSender() || hasRole(OPERATOR_ROLE, _msgSender()),
-            "ICS20Bank: caller is not owner nor approved"
+            "IrohaICS20Bank: caller is not owner nor approved"
         );
 
         uint256 fromBalance = _balances[id][from];
-        require(fromBalance >= amount, "ICS20Bank: insufficient balance for transfer");
+        require(fromBalance >= amount, "IrohaICS20Bank: insufficient balance for transfer");
         _balances[id][from] = fromBalance - amount;
         _balances[id][to] += amount;
     }
 
     function mint(address account, string calldata id, uint256 amount) override virtual external {
-        require(hasRole(OPERATOR_ROLE, _msgSender()), "ICS20Bank: must have minter role to mint");
+        require(hasRole(OPERATOR_ROLE, _msgSender()), "IrohaICS20Bank: must have minter role to mint");
         _mint(account, id, amount);
     }
 
     function burn(address account, string calldata id, uint256 amount) override virtual external {
-        require(hasRole(OPERATOR_ROLE, _msgSender()), "ICS20Bank: must have minter role to mint");
+        require(hasRole(OPERATOR_ROLE, _msgSender()), "IrohaICS20Bank: must have minter role to mint");
         _burn(account, id, amount);
     }
 
@@ -79,7 +79,7 @@ contract ICS20Bank is Context, AccessControl, IICS20Bank {
 
     function _burn(address account, string memory id, uint256 amount) virtual internal {
         uint256 accountBalance = _balances[id][account];
-        require(accountBalance >= amount, "ICS20Bank: burn amount exceeds balance");
+        require(accountBalance >= amount, "IrohaICS20Bank: burn amount exceeds balance");
         _balances[id][account] = accountBalance - amount;
     }
 

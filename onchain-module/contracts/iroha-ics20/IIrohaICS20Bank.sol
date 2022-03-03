@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.9;
 
-interface IICS20Bank {
+interface IIrohaICS20Bank {
     function transferFrom(address from, address to, string calldata id, uint256 amount) external;
     function mint(address account, string calldata id, uint256 amount) external;
     function burn(address account, string calldata id, uint256 amount) external;

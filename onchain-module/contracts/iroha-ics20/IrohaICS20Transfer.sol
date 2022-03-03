@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.9;
 
-import "./IICS20Transfer.sol";
+import "./IIrohaICS20Transfer.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/types/Channel.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCModule.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHandler.sol";
@@ -11,7 +11,7 @@ import "@hyperledger-labs/yui-ibc-solidity/contracts/lib/strings.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/lib/Bytes.sol";
 import "openzeppelin-solidity/contracts/utils/Context.sol";
 
-abstract contract ICS20Transfer is Context, IICS20Transfer {
+abstract contract IrohaICS20Transfer is Context, IIrohaICS20Transfer {
     using strings for *;
     using Bytes for *;
 

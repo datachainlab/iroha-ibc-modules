@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCModule.sol";
 
-interface IICS20Transfer is IModuleCallbacks {
+interface IIrohaICS20Transfer is IModuleCallbacks {
     function sendTransfer(
         string calldata denom,
         uint64 amount,
