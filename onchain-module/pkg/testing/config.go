@@ -11,13 +11,15 @@ import (
 var _ ContractConfig = (*TruffleContractConfig)(nil)
 
 type TruffleContractConfig struct {
-	ibcHostAddress           common.Address
-	ibcHandlerAddress        common.Address
-	ibcIdentifierAddress     common.Address
-	mockClientAddress        common.Address
-	simpleTokenAddress       common.Address
-	ics20BankAddress         common.Address
-	ics20TransferBankAddress common.Address
+	ibcHostAddress                common.Address
+	ibcHandlerAddress             common.Address
+	ibcIdentifierAddress          common.Address
+	mockClientAddress             common.Address
+	simpleTokenAddress            common.Address
+	ics20BankAddress              common.Address
+	ics20TransferBankAddress      common.Address
+	irohaIcs20BankAddress         common.Address
+	irohaIcs20TransferBankAddress common.Address
 }
 
 func NewTruffleContractConfig(networkID int, buildPath string) TruffleContractConfig {
@@ -59,6 +61,16 @@ func NewTruffleContractConfig(networkID int, buildPath string) TruffleContractCo
 		c.ics20TransferBankAddress = common.HexToAddress(string(n.Address))
 	}
 
+	{
+		n := truffle.UnmarshallConfig(networkIDStr, buildPath, "IrohaICS20Bank.json")
+		c.irohaIcs20BankAddress = common.HexToAddress(string(n.Address))
+	}
+
+	{
+		n := truffle.UnmarshallConfig(networkIDStr, buildPath, "IrohaICS20TransferBank.json")
+		c.irohaIcs20TransferBankAddress = common.HexToAddress(string(n.Address))
+	}
+
 	return c
 }
 
@@ -88,4 +100,12 @@ func (c TruffleContractConfig) GetICS20BankAddress() common.Address {
 
 func (c TruffleContractConfig) GetICS20TransferBankAddress() common.Address {
 	return c.ics20TransferBankAddress
+}
+
+func (c TruffleContractConfig) GetIrohaICS20BankAddress() common.Address {
+	return c.irohaIcs20BankAddress
+}
+
+func (c TruffleContractConfig) GetIrohaICS20TransferBankAddress() common.Address {
+	return c.irohaIcs20TransferBankAddress
 }
