@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@datachainlab/ibc-ethmultisig-client": "git+https://github.com/datachainlab/ibc-ethmultisig-client.git#1191ec233811affad4ea67da32b6b63ce95bb5aa",
-    "@hyperledger-labs/yui-ibc-solidity": "git+https://github.com/hyperledger-labs/yui-ibc-solidity.git#0f917e10509b4f6a3295518a278d7a8a1e4e90a5"
+    "@hyperledger-labs/yui-ibc-solidity": "git+https://github.com/hyperledger-labs/yui-ibc-solidity.git#fab6043436bee73fa7f779e4566bbd3104e04228"
   },
   "devDependencies": {
     "@truffle/contract-schema": "^3.4.4",
