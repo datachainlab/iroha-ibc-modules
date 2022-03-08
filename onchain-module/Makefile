@@ -1,3 +1,5 @@
+ABIGEN ?= abigen
+
 .PHONY: compile
 compile:
 	npm run compile
@@ -38,3 +40,7 @@ endif
 protocgen-sol:
 	@echo "Generating sol files from proto files"
 	./scripts/protocgen-sol.sh
+
+.PHONY: abi
+abi:
+	ABIGEN=$(ABIGEN) ./scripts/abigen.sh
