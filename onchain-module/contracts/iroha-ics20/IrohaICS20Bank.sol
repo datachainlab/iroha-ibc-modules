@@ -3,132 +3,94 @@ pragma solidity ^0.8.9;
 
 import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./IIrohaICS20Bank.sol";
+import "./IrohaUtil.sol";
+import "../old-experiments/IrohaApi.sol";
 
 contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
-    using Address for address;
-
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+    bytes32 public constant ICS20_ROLE = keccak256("ICS20_ROLE");
+    bytes32 public constant BANK_ROLE = keccak256("BANK_ROLE");
 
-    // Mapping from token ID to account balances
-    mapping(string => mapping(address => uint256)) private _balances;
+    struct BurnRequest {
+        bool active;
+        string assetId;
+        string amount;
+    }
+
+    struct MintRequest {
+        bool active;
+        string destAccountId;
+        string assetId;
+        string description;
+        string amount;
+    }
+
+    string private bankAccountId;
+    uint256 private nextBurnRequestId;
+    uint256 private nextMintRequestId;
+    mapping(uint256 => BurnRequest) private burnRequests;
+    mapping(uint256 => MintRequest) private mintRequests;
 
     constructor() {
         _setupRole(ADMIN_ROLE, _msgSender());
+        _setRoleAdmin(ICS20_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(BANK_ROLE, ADMIN_ROLE);
     }
 
-    function setOperator(address operator) virtual public {
-        require(hasRole(ADMIN_ROLE, _msgSender()), "must have admin role to set new operator");
-        _setupRole(OPERATOR_ROLE, operator);
+    function setIcs20Contract(address addr) external onlyRole(ADMIN_ROLE) {
+        grantRole(ICS20_ROLE, addr);
     }
 
-    function balanceOf(address account, string calldata id) virtual external view returns (uint256) {
-        require(account != address(0), "IrohaICS20Bank: balance query for the zero address");
-        return _balances[id][account];
+    function setBank(string calldata accountId) external onlyRole(ADMIN_ROLE) {
+        bankAccountId = accountId;
+        address addr = IrohaUtil.accountToAddress(accountId);
+        grantRole(BANK_ROLE, addr);
     }
 
-    function transferFrom(address from, address to, string calldata id, uint256 amount) override virtual external {
-        require(to != address(0), "IrohaICS20Bank: transfer to the zero address");
-        require(
-            from == _msgSender() || hasRole(OPERATOR_ROLE, _msgSender()),
-            "IrohaICS20Bank: caller is not owner nor approved"
-        );
-
-        uint256 fromBalance = _balances[id][from];
-        require(fromBalance >= amount, "IrohaICS20Bank: insufficient balance for transfer");
-        _balances[id][from] = fromBalance - amount;
-        _balances[id][to] += amount;
+    function setNextBurnRequestId(uint256 requestId) external onlyRole(ADMIN_ROLE) {
+        nextBurnRequestId = requestId;
     }
 
-    function mint(address account, string calldata id, uint256 amount) override virtual external {
-        require(hasRole(OPERATOR_ROLE, _msgSender()), "IrohaICS20Bank: must have minter role to mint");
-        _mint(account, id, amount);
+    function setNextMintRequestId(uint256 requestId) external onlyRole(ADMIN_ROLE) {
+        nextMintRequestId = requestId;
     }
 
-    function burn(address account, string calldata id, uint256 amount) override virtual external {
-        require(hasRole(OPERATOR_ROLE, _msgSender()), "IrohaICS20Bank: must have minter role to mint");
-        _burn(account, id, amount);
+    function requestBurn(string calldata srcAccountId, string calldata assetId, string calldata description, string calldata amount) external override onlyRole(ICS20_ROLE) {
+        IrohaApi.transferAsset(srcAccountId, bankAccountId, assetId, description, amount);
+        burnRequests[nextBurnRequestId] = BurnRequest({
+            active: true,
+            assetId: assetId,
+            amount: amount
+        });
+        emit BurnRequested(nextBurnRequestId, srcAccountId, assetId, description, amount);
+        nextBurnRequestId += 1;
     }
 
-    function deposit(
-        address tokenContract,
-        uint256 amount,
-        address receiver
-    ) virtual external {
-        require(tokenContract.isContract());
-        require(IERC20(tokenContract).transferFrom(_msgSender(), address(this), amount));
-        _mint(receiver, _genDenom(tokenContract), amount);
+    function burn(uint256 requestId) external override onlyRole(BANK_ROLE) {
+        BurnRequest storage request = burnRequests[requestId];
+        require(request.active, "BurnRequest is inactive");
+        request.active = false;
+        IrohaApi.subtractAssetQuantity(request.assetId, request.amount);
     }
 
-    function withdraw(
-        address tokenContract,
-        uint256 amount,
-        address receiver
-    ) virtual external {
-        require(tokenContract.isContract());
-        _burn(_msgSender(), _genDenom(tokenContract), amount);
-        require(IERC20(tokenContract).transfer(receiver, amount));
+    function requestMint(string calldata destAccountId, string calldata assetId, string calldata description, string calldata amount) external override onlyRole(ICS20_ROLE) {
+        mintRequests[nextMintRequestId] = MintRequest({
+            active: true,
+            destAccountId: destAccountId,
+            assetId: assetId,
+            description: description,
+            amount: amount
+        });
+        emit MintRequested(nextMintRequestId, destAccountId, assetId, description, amount);
+        nextMintRequestId += 1;
     }
 
-    function _mint(address account, string memory id, uint256 amount) virtual internal {
-        _balances[id][account] += amount;
-    }
-
-    function _burn(address account, string memory id, uint256 amount) virtual internal {
-        uint256 accountBalance = _balances[id][account];
-        require(accountBalance >= amount, "IrohaICS20Bank: burn amount exceeds balance");
-        _balances[id][account] = accountBalance - amount;
-    }
-
-    function _genDenom(address tokenContract) virtual pure internal returns (string memory) {
-        return addressToString(tokenContract);
-    }
-
-    /// Helper functions ///
-    // TODO move following functions into any library
-    function addressToString(address _address) internal pure returns(string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-        bytes20 data = bytes20(_address);
-
-        bytes memory str = new bytes(42);
-        str[0] = "0";
-        str[1] = "x";
-        for (uint i = 0; i < 20; i++) {
-            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
-            str[2+1+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
-        }
-        return string(str);
-    }
-
-    // a copy from https://github.com/provable-things/ethereum-api/blob/161552ebd4f77090d86482cff8c863cf903c6f5f/oraclizeAPI_0.6.sol
-    function parseAddr(string memory _a) internal pure returns (address _parsedAddress) {
-        bytes memory tmp = bytes(_a);
-        uint160 iaddr = 0;
-        uint160 b1;
-        uint160 b2;
-        for (uint i = 2; i < 2 + 2 * 20; i += 2) {
-            iaddr *= 256;
-            b1 = uint160(uint8(tmp[i]));
-            b2 = uint160(uint8(tmp[i + 1]));
-            if ((b1 >= 97) && (b1 <= 102)) {
-                b1 -= 87;
-            } else if ((b1 >= 65) && (b1 <= 70)) {
-                b1 -= 55;
-            } else if ((b1 >= 48) && (b1 <= 57)) {
-                b1 -= 48;
-            }
-            if ((b2 >= 97) && (b2 <= 102)) {
-                b2 -= 87;
-            } else if ((b2 >= 65) && (b2 <= 70)) {
-                b2 -= 55;
-            } else if ((b2 >= 48) && (b2 <= 57)) {
-                b2 -= 48;
-            }
-            iaddr += (b1 * 16 + b2);
-        }
-        return address(iaddr);
+    function mint(uint256 requestId) override external onlyRole(BANK_ROLE) {
+        MintRequest storage request = mintRequests[requestId];
+        require(request.active, "MintRequest is inactive");
+        request.active = false;
+        IrohaApi.addAssetQuantity(request.assetId, request.amount);
+        IrohaApi.transferAsset(bankAccountId, request.destAccountId, request.assetId, request.description, request.amount);
     }
 }

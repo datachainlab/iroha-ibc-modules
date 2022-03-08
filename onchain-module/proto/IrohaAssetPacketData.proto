@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/iroha-ics20";
+
+message IrohaAssetPacketData {
+    string src_account_id = 1;
+    string dest_account_id = 2;
+    string asset_id = 3;
+    string description = 4;
+    string amount = 5;
+}

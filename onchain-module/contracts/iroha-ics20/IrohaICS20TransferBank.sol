@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.9;
 
-import "./IrohaICS20Transfer.sol";
-import "./IIrohaICS20Bank.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHandler.sol";
 import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHost.sol";
-import "@hyperledger-labs/yui-ibc-solidity/contracts/core/types/App.sol";
+import "./IrohaICS20Transfer.sol";
+import "./IIrohaICS20Bank.sol";
 
 contract IrohaICS20TransferBank is IrohaICS20Transfer {
     IIrohaICS20Bank bank;
@@ -14,24 +13,16 @@ contract IrohaICS20TransferBank is IrohaICS20Transfer {
         bank = bank_;
     }
 
-    function _transferFrom(address sender, address receiver, string memory denom, uint256 amount) override internal returns (bool) {
-        try bank.transferFrom(sender, receiver, denom, amount) {
+    function burn(string memory srcAccountId, string memory assetId, string memory description, string memory amount) internal override returns (bool) {
+        try bank.requestBurn(srcAccountId, assetId, description, amount) {
             return true;
         } catch (bytes memory) {
             return false;
         }
     }
 
-    function _mint(address account, string memory denom, uint256 amount) override internal returns (bool) {
-        try bank.mint(account, denom, amount) {
-            return true;
-        } catch (bytes memory) {
-            return false;
-        }
-    }
-
-    function _burn(address account, string memory denom, uint256 amount) override internal returns (bool) {
-        try bank.burn(account, denom, amount) {
+    function mint(string memory destAccountId, string memory assetId, string memory description, string memory amount) internal override returns (bool) {
+        try bank.requestMint(destAccountId, assetId, description, amount) {
             return true;
         } catch (bytes memory) {
             return false;
