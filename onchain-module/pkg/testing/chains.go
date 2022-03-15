@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/client"
+	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/contract/irohaics20bank"
 	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/irohaeth"
 	irohatypes "github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/irohaeth/types"
 )
@@ -36,6 +37,7 @@ const (
 	DefaultDelayPeriod    uint64 = 3 * BlockTime
 	DefaultPrefix                = "ibc"
 	TransferPort                 = "transfer"
+	IrohaTransferPort            = "irohatransfer"
 
 	RelayerKeyIndex uint32 = 0
 
@@ -46,7 +48,9 @@ var (
 	abiSendPacket,
 	abiGeneratedClientIdentifier,
 	abiGeneratedConnectionIdentifier,
-	abiGeneratedChannelIdentifier abi.Event
+	abiGeneratedChannelIdentifier,
+	abiBurnRequested,
+	abiMintRequested abi.Event
 )
 
 func init() {
@@ -58,10 +62,16 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	parsedIrohaIcs20BankABI, err := abi.JSON(strings.NewReader(irohaics20bank.Irohaics20bankABI))
+	if err != nil {
+		panic(err)
+	}
 	abiSendPacket = parsedHandlerABI.Events["SendPacket"]
 	abiGeneratedClientIdentifier = parsedHostABI.Events["GeneratedClientIdentifier"]
 	abiGeneratedConnectionIdentifier = parsedHostABI.Events["GeneratedConnectionIdentifier"]
 	abiGeneratedChannelIdentifier = parsedHostABI.Events["GeneratedChannelIdentifier"]
+	abiBurnRequested = parsedIrohaIcs20BankABI.Events["BurnRequested"]
+	abiMintRequested = parsedIrohaIcs20BankABI.Events["MintRequested"]
 }
 
 type Chain struct {
@@ -735,6 +745,62 @@ func (chain *Chain) FindPacket(
 	}
 
 	return nil, fmt.Errorf("packet not found: sourcePortID=%v sourceChannel=%v sequence=%v", sourcePortID, sourceChannel, sequence)
+}
+
+func (chain *Chain) FindBurnRequestedEvents(ctx context.Context, blockHash *common.Hash) ([]irohaics20bank.Irohaics20bankBurnRequested, error) {
+	// get logs containing BurnRequested events
+	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
+		BlockHash: blockHash,
+		Addresses: []common.Address{
+			chain.ContractConfig.GetIrohaICS20BankAddress(),
+		},
+		Topics: [][]common.Hash{{
+			abiBurnRequested.ID,
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// parse logs as events
+	events := make([]irohaics20bank.Irohaics20bankBurnRequested, len(logs))
+	for i, log := range logs {
+		if values, err := abiBurnRequested.Inputs.Unpack(log.Data); err != nil {
+			return nil, err
+		} else if err := abiBurnRequested.Inputs.Copy(&events[i], values); err != nil {
+			return nil, err
+		}
+	}
+
+	return events, nil
+}
+
+func (chain *Chain) FindMintRequestedEvents(ctx context.Context, blockHash *common.Hash) ([]irohaics20bank.Irohaics20bankMintRequested, error) {
+	// get logs containing MintRequested events
+	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
+		BlockHash: blockHash,
+		Addresses: []common.Address{
+			chain.ContractConfig.GetIrohaICS20BankAddress(),
+		},
+		Topics: [][]common.Hash{{
+			abiMintRequested.ID,
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// parse logs as events
+	events := make([]irohaics20bank.Irohaics20bankMintRequested, len(logs))
+	for i, log := range logs {
+		if values, err := abiMintRequested.Inputs.Unpack(log.Data); err != nil {
+			return nil, err
+		} else if err := abiMintRequested.Inputs.Copy(&events[i], values); err != nil {
+			return nil, err
+		}
+	}
+
+	return events, nil
 }
 
 func packetToCallData(packet channeltypes.Packet) ibchandler.PacketData {
