@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/utils/Strings.sol";
 
 library IrohaUtil {
     function accountToAddress(string memory accountId) internal pure returns (address) {
-        return address(uint160(bytes20(keccak256(bytes(accountId)))));
+        return address(uint160(uint256(keccak256(bytes(accountId)))));
     }
 
     function checkAccountAddress(string memory accountId, address addr) internal pure {

@@ -747,10 +747,10 @@ func (chain *Chain) FindPacket(
 	return nil, fmt.Errorf("packet not found: sourcePortID=%v sourceChannel=%v sequence=%v", sourcePortID, sourceChannel, sequence)
 }
 
-func (chain *Chain) FindBurnRequestedEvents(ctx context.Context, blockHash *common.Hash) ([]irohaics20bank.Irohaics20bankBurnRequested, error) {
+func (chain *Chain) FindBurnRequestedEvents(ctx context.Context) ([]irohaics20bank.Irohaics20bankBurnRequested, error) {
 	// get logs containing BurnRequested events
 	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
-		BlockHash: blockHash,
+		BlockHash: &common.Hash{}, // TODO: this is dirty hack to get specify the latest block
 		Addresses: []common.Address{
 			chain.ContractConfig.GetIrohaICS20BankAddress(),
 		},
@@ -775,10 +775,10 @@ func (chain *Chain) FindBurnRequestedEvents(ctx context.Context, blockHash *comm
 	return events, nil
 }
 
-func (chain *Chain) FindMintRequestedEvents(ctx context.Context, blockHash *common.Hash) ([]irohaics20bank.Irohaics20bankMintRequested, error) {
+func (chain *Chain) FindMintRequestedEvents(ctx context.Context) ([]irohaics20bank.Irohaics20bankMintRequested, error) {
 	// get logs containing MintRequested events
 	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
-		BlockHash: blockHash,
+		BlockHash: &common.Hash{}, // TODO: this is dirty hack to get specify the latest block
 		Addresses: []common.Address{
 			chain.ContractConfig.GetIrohaICS20BankAddress(),
 		},
