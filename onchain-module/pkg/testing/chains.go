@@ -2,7 +2,6 @@ package testing
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -95,7 +94,6 @@ type Chain struct {
 	ContractConfig ContractConfig
 
 	accountIds []string
-	keys       map[uint32]*ecdsa.PrivateKey
 
 	// State
 	LastContractState client.ContractState
@@ -159,7 +157,6 @@ func NewChain(t *testing.T, client client.Client, config ContractConfig, account
 		client:         client,
 		ContractConfig: config,
 		accountIds:     accountIds,
-		keys:           make(map[uint32]*ecdsa.PrivateKey),
 		IBCID:          ibcID,
 
 		IBCHost:            *ibcHost,
