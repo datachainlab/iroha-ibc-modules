@@ -16,6 +16,10 @@ migrate:
 integration-test:
 	go test -v ./tests/integration/... -count=1
 
+.PHONY: e2e-test
+e2e-test:
+	go test -v ./tests/e2e/... -count=1
+
 .PHONY: migrate-e2e
 migrate-e2e:
 	npm run migrate:one
