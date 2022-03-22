@@ -11,14 +11,22 @@ $RLY paths add $IBC_ZERO $IBC_ONE $PATH_NAME --file=${CONFIG_DIR}/relayer/path.j
 
 IBC_HOST_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHost.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
 IBC_HANDLER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHandler.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
+IROHA_ICS20_BANK_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IrohaICS20Bank.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
+IROHA_ICS20_TRANSFER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IrohaICS20TransferBank.json | jq -r ".networks[\"$NETWORK_ID_IBC_ZERO\"].address")
 
 ${RLY} iroha config set-contract $IBC_ZERO \
 --ibc-host $IBC_HOST_ADDRESS \
---ibc-handler $IBC_HANDLER_ADDRESS
+--ibc-handler $IBC_HANDLER_ADDRESS \
+--iroha-ics20-bank-host $IROHA_ICS20_BANK_ADDRESS \
+--iroha-ics20-transfer-handler $IROHA_ICS20_TRANSFER_ADDRESS
 
 IBC_HOST_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHost.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
 IBC_HANDLER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IBCHandler.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
+IROHA_ICS20_BANK_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IrohaICS20Bank.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
+IROHA_ICS20_TRANSFER_ADDRESS=$(cat ${CONTRACT_ARTIFACT_DIR}/IrohaICS20TransferBank.json | jq -r ".networks[\"$NETWORK_ID_IBC_ONE\"].address")
 
 ${RLY} iroha config set-contract $IBC_ONE \
 --ibc-host $IBC_HOST_ADDRESS \
---ibc-handler $IBC_HANDLER_ADDRESS
+--ibc-handler $IBC_HANDLER_ADDRESS \
+--iroha-ics20-bank-host $IROHA_ICS20_BANK_ADDRESS \
+--iroha-ics20-transfer-handler $IROHA_ICS20_TRANSFER_ADDRESS

@@ -18,3 +18,11 @@ func (c ChainConfig) IBCHostAddress() common.Address {
 func (c ChainConfig) IBCHandlerAddress() common.Address {
 	return common.HexToAddress(c.IbcHandlerAddress)
 }
+
+func (c ChainConfig) IrohaICS20BankAddress() common.Address {
+	return common.HexToAddress(c.IrohaIcs20BankAddress)
+}
+
+func (c ChainConfig) IrohaICS20TransferAddress() common.Address {
+	return common.HexToAddress(c.IrohaIcs20TransferAddress)
+}
