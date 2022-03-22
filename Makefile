@@ -10,3 +10,4 @@ network-down:
 e2e-test:
 	./scripts/init-rly
 	./scripts/handshake
+	./scripts/test-tx

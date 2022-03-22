@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source $(cd $(dirname ${BASH_SOURCE:-$0}); pwd)/vars
+
+set -x
+$RLY iroha tx set-bank $IBC_ZERO 'admin@test'
+$RLY iroha tx set-bank $IBC_ONE  'admin@test'
+set +x
