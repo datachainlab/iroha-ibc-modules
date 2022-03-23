@@ -78,6 +78,11 @@ func waitForReceipt(ctx context.Context, rpcCli *rpc.Client, txHash common.Hash)
 	}
 }
 
+func getLatestBlockNumber(ctx context.Context, rpcCli *rpc.Client) (uint64, error) {
+	ethCli := ethclient.NewClient(rpcCli)
+	return ethCli.BlockNumber(ctx)
+}
+
 func dialToIrohad(endpoint string) (*grpc.ClientConn, error) {
 	return grpc.Dial(
 		endpoint,

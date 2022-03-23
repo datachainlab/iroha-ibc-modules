@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/datachainlab/iroha-ibc-modules/relayer/chains/iroha"
@@ -74,21 +74,26 @@ func setBankCmd(ctx *config.Context) *cobra.Command {
 
 func sendTransferCmd(ctx *config.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "send-transfer [chain-id] [src-account-id] [dest-account-id] [asset-id] [description] [amount] [source-port] [source-channel] [timeout-height]",
-		Args: cobra.ExactArgs(9),
+		Use:  "send-transfer [path-name] [chain-id] [src-account-id] [dest-account-id] [asset-id] [description] [amount]",
+		Args: cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			chainID := args[0]
-			srcAccountID := args[1]
-			destAccountID := args[2]
-			assetID := args[3]
-			description := args[4]
-			amount := args[5]
-			// TODO: the following three parameters should be determined by this command itself
-			sourcePort := args[6]
-			sourceChannel := args[7]
-			timeoutHeight, err := strconv.ParseUint(args[8], 10, 64)
-			if err != nil {
+			pathName := args[0]
+			chainID := args[1]
+			srcAccountID := args[2]
+			destAccountID := args[3]
+			assetID := args[4]
+			description := args[5]
+			amount := args[6]
+
+			// find source port id and source channel id
+			var sourcePort, sourceChannel string
+			if path, err := ctx.Config.Paths.Get(pathName); err != nil {
 				return err
+			} else if pathEnd := path.End(chainID); pathEnd.ChainID != chainID {
+				return fmt.Errorf("PathEnd not found for pathName:%s and chainID:%s", pathName, chainID)
+			} else {
+				sourcePort = pathEnd.PortID
+				sourceChannel = pathEnd.ChannelID
 			}
 
 			// find chain config
@@ -105,6 +110,14 @@ func sendTransferCmd(ctx *config.Context) *cobra.Command {
 			contract, err := iroha.NewIrohaIcs20Transfer(cfg.IrohaICS20TransferAddress(), rpcCli)
 			if err != nil {
 				return err
+			}
+
+			// get latest block number and determine timeout height
+			var timeoutHeight uint64
+			if bn, err := getLatestBlockNumber(cmd.Context(), rpcCli); err != nil {
+				return err
+			} else {
+				timeoutHeight = bn + 1000
 			}
 
 			// submit sendTransfer tx
