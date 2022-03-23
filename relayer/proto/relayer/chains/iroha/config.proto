@@ -17,4 +17,6 @@ message ChainConfig {
   string ibc_handler_address = 6;
   string iroha_ics20_bank_address = 7;
   string iroha_ics20_transfer_address = 8;
+
+  string torii_addr = 9;
 }
