@@ -2,7 +2,6 @@ package integration
 
 import (
 	"context"
-	"math/big"
 	"testing"
 	"time"
 
@@ -170,14 +169,6 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 			uint64(chainA.LastHeader().Number.Int64())+1000,
 		),
 	))
-	var burnRequestId *big.Int
-	{
-		events, err := chainA.FindBurnRequestedEvents(ctx)
-		suite.Require().NoError(err)
-		suite.Require().Len(events, 1)
-		burnRequestId = events[0].Id
-	}
-	suite.T().Log("burn request id:", burnRequestId)
 
 	// check alice's balance after sendTransfer
 	aliceBalance, err = irohadA.GetAccountAsset(ctx, alice, irohadA.AccountIdOf(alice), AssetId)
@@ -194,7 +185,7 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 	// bankA burns the tokens
 	suite.T().Log("bankA burns the tokens")
 	suite.Require().NoError(chainA.WaitIfNoError(ctx)(
-		chainA.IrohaICS20Bank.Transact(chainA.TxOpts(ctx, bank), "burn", burnRequestId),
+		chainA.IrohaICS20Bank.Transact(chainA.TxOpts(ctx, bank), "burn"),
 	))
 
 	// check bankA's balance after burn
@@ -207,28 +198,13 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 	suite.T().Log("relayer executes recvPacket, while requesting for bankB to mint the tokens to bob")
 	packet, err := chainA.GetLastSentPacket(ctx, chanA.PortID, chanA.ID)
 	suite.Require().NoError(err)
-
-	chainA.UpdateHeader()
-	suite.Require().NoError(suite.coordinator.UpdateClient(ctx, chainB, chainA, clientB))
-	suite.Require().NoError(chainB.HandlePacketRecv(ctx, chainA, chanB, chanA, *packet))
-
-	var mintRequestId *big.Int
-	{
-		events, err := chainB.FindMintRequestedEvents(ctx)
-		suite.Require().NoError(err)
-		suite.Require().Len(events, 1)
-		mintRequestId = events[0].Id
-	}
-	suite.T().Log("mint request id:", mintRequestId)
-
-	chainB.UpdateHeader()
-	suite.Require().NoError(suite.coordinator.UpdateClient(ctx, chainA, chainB, clientA))
+	suite.Require().NoError(suite.coordinator.HandlePacketRecv(ctx, chainB, chainA, chanB, chanA, *packet))
 	suite.Require().NoError(suite.coordinator.HandlePacketAcknowledgement(ctx, chainA, chainB, chanA, chanB, *packet, []byte{1}))
 
 	// bankB mints the tokens to bob
 	suite.T().Log("bankB mints the tokens to bob")
 	suite.Require().NoError(chainB.WaitIfNoError(ctx)(
-		chainB.IrohaICS20Bank.Transact(chainB.TxOpts(ctx, bank), "mint", mintRequestId),
+		chainB.IrohaICS20Bank.Transact(chainB.TxOpts(ctx, bank), "mint"),
 	))
 
 	// check bob's balance after mint
@@ -251,13 +227,6 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 			uint64(chainB.LastHeader().Number.Int64())+1000,
 		),
 	))
-	{
-		events, err := chainB.FindBurnRequestedEvents(ctx)
-		suite.Require().NoError(err)
-		suite.Require().Len(events, 1)
-		burnRequestId = events[0].Id
-	}
-	suite.T().Log("burn request id:", burnRequestId)
 
 	// check bob's balance after sendTransfer
 	bobBalance, err = irohadB.GetAccountAsset(ctx, bob, irohadB.AccountIdOf(bob), AssetId)
@@ -274,7 +243,7 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 	// bankB burns the tokens
 	suite.T().Log("bankB burns the tokens")
 	suite.Require().NoError(chainB.WaitIfNoError(ctx)(
-		chainB.IrohaICS20Bank.Transact(chainB.TxOpts(ctx, bank), "burn", burnRequestId),
+		chainB.IrohaICS20Bank.Transact(chainB.TxOpts(ctx, bank), "burn"),
 	))
 
 	// check bankB's balance after burn
@@ -287,27 +256,13 @@ func (suite *IrohaIcs20TestSuite) TestChannel() {
 	suite.T().Log("relayer executes recvPacket, while requesting for bankA to mint the tokens to alice")
 	packet, err = chainB.GetLastSentPacket(ctx, chanB.PortID, chanB.ID)
 	suite.Require().NoError(err)
-
-	chainB.UpdateHeader()
-	suite.Require().NoError(suite.coordinator.UpdateClient(ctx, chainA, chainB, clientA))
-	suite.Require().NoError(chainA.HandlePacketRecv(ctx, chainB, chanA, chanB, *packet))
-
-	{
-		events, err := chainA.FindMintRequestedEvents(ctx)
-		suite.Require().NoError(err)
-		suite.Require().Len(events, 1)
-		mintRequestId = events[0].Id
-	}
-	suite.T().Log("mint request id:", mintRequestId)
-
-	chainA.UpdateHeader()
-	suite.Require().NoError(suite.coordinator.UpdateClient(ctx, chainB, chainA, clientB))
+	suite.Require().NoError(suite.coordinator.HandlePacketRecv(ctx, chainA, chainB, chanA, chanB, *packet))
 	suite.Require().NoError(suite.coordinator.HandlePacketAcknowledgement(ctx, chainB, chainA, chanB, chanA, *packet, []byte{1}))
 
 	// bankA mints the token to alice
 	suite.T().Log("bankA mints the tokens to alice")
 	suite.Require().NoError(chainA.WaitIfNoError(ctx)(
-		chainA.IrohaICS20Bank.Transact(chainA.TxOpts(ctx, bank), "mint", mintRequestId),
+		chainA.IrohaICS20Bank.Transact(chainA.TxOpts(ctx, bank), "mint"),
 	))
 
 	// check alice's balance after recvPacket

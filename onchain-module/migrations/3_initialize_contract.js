@@ -27,8 +27,6 @@ module.exports = async function (deployer) {
     () => ibcHandler.registerClient(MultisigClientType, MultisigClient.address),
     () => ics20Bank.setOperator(ICS20TransferBank.address),
     () => irohaIcs20Bank.setIcs20Contract(IrohaICS20TransferBank.address),
-    () => irohaIcs20Bank.setNextBurnRequestId(10000),
-    () => irohaIcs20Bank.setNextMintRequestId(20000),
   ]) {
     const result = await f();
     if(!result.receipt.status) {

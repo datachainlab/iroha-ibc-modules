@@ -27,7 +27,7 @@ var (
 )
 
 // Irohaics20bankABI is the input ABI used to generate the binding from.
-const Irohaics20bankABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"srcAccountId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"BurnRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"destAccountId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"MintRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"BANK_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"ICS20_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"setIcs20Contract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"accountId\",\"type\":\"string\"}],\"name\":\"setBank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"setNextBurnRequestId\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"setNextMintRequestId\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"srcAccountId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"requestBurn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"destAccountId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"requestMint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const Irohaics20bankABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BANK_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ICS20_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"setIcs20Contract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"accountId\",\"type\":\"string\"}],\"name\":\"setBank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"srcAccountId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"requestBurn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"burn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"countPendingBurnRequests\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"destAccountId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"assetId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"amount\",\"type\":\"string\"}],\"name\":\"requestMint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"countPendingMintRequests\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Irohaics20bank is an auto generated Go binding around an Ethereum contract.
 type Irohaics20bank struct {
@@ -295,6 +295,68 @@ func (_Irohaics20bank *Irohaics20bankCallerSession) ICS20ROLE() ([32]byte, error
 	return _Irohaics20bank.Contract.ICS20ROLE(&_Irohaics20bank.CallOpts)
 }
 
+// CountPendingBurnRequests is a free data retrieval call binding the contract method 0x229298c0.
+//
+// Solidity: function countPendingBurnRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankCaller) CountPendingBurnRequests(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _Irohaics20bank.contract.Call(opts, &out, "countPendingBurnRequests")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CountPendingBurnRequests is a free data retrieval call binding the contract method 0x229298c0.
+//
+// Solidity: function countPendingBurnRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankSession) CountPendingBurnRequests() (*big.Int, error) {
+	return _Irohaics20bank.Contract.CountPendingBurnRequests(&_Irohaics20bank.CallOpts)
+}
+
+// CountPendingBurnRequests is a free data retrieval call binding the contract method 0x229298c0.
+//
+// Solidity: function countPendingBurnRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankCallerSession) CountPendingBurnRequests() (*big.Int, error) {
+	return _Irohaics20bank.Contract.CountPendingBurnRequests(&_Irohaics20bank.CallOpts)
+}
+
+// CountPendingMintRequests is a free data retrieval call binding the contract method 0x3a0af6e8.
+//
+// Solidity: function countPendingMintRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankCaller) CountPendingMintRequests(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _Irohaics20bank.contract.Call(opts, &out, "countPendingMintRequests")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CountPendingMintRequests is a free data retrieval call binding the contract method 0x3a0af6e8.
+//
+// Solidity: function countPendingMintRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankSession) CountPendingMintRequests() (*big.Int, error) {
+	return _Irohaics20bank.Contract.CountPendingMintRequests(&_Irohaics20bank.CallOpts)
+}
+
+// CountPendingMintRequests is a free data retrieval call binding the contract method 0x3a0af6e8.
+//
+// Solidity: function countPendingMintRequests() view returns(uint256)
+func (_Irohaics20bank *Irohaics20bankCallerSession) CountPendingMintRequests() (*big.Int, error) {
+	return _Irohaics20bank.Contract.CountPendingMintRequests(&_Irohaics20bank.CallOpts)
+}
+
 // GetRoleAdmin is a free data retrieval call binding the contract method 0x248a9ca3.
 //
 // Solidity: function getRoleAdmin(bytes32 role) view returns(bytes32)
@@ -388,25 +450,25 @@ func (_Irohaics20bank *Irohaics20bankCallerSession) SupportsInterface(interfaceI
 	return _Irohaics20bank.Contract.SupportsInterface(&_Irohaics20bank.CallOpts, interfaceId)
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// Burn is a paid mutator transaction binding the contract method 0x44df8e70.
 //
-// Solidity: function burn(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactor) Burn(opts *bind.TransactOpts, requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.contract.Transact(opts, "burn", requestId)
+// Solidity: function burn() returns()
+func (_Irohaics20bank *Irohaics20bankTransactor) Burn(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Irohaics20bank.contract.Transact(opts, "burn")
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// Burn is a paid mutator transaction binding the contract method 0x44df8e70.
 //
-// Solidity: function burn(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankSession) Burn(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.Burn(&_Irohaics20bank.TransactOpts, requestId)
+// Solidity: function burn() returns()
+func (_Irohaics20bank *Irohaics20bankSession) Burn() (*types.Transaction, error) {
+	return _Irohaics20bank.Contract.Burn(&_Irohaics20bank.TransactOpts)
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// Burn is a paid mutator transaction binding the contract method 0x44df8e70.
 //
-// Solidity: function burn(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactorSession) Burn(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.Burn(&_Irohaics20bank.TransactOpts, requestId)
+// Solidity: function burn() returns()
+func (_Irohaics20bank *Irohaics20bankTransactorSession) Burn() (*types.Transaction, error) {
+	return _Irohaics20bank.Contract.Burn(&_Irohaics20bank.TransactOpts)
 }
 
 // GrantRole is a paid mutator transaction binding the contract method 0x2f2ff15d.
@@ -430,25 +492,25 @@ func (_Irohaics20bank *Irohaics20bankTransactorSession) GrantRole(role [32]byte,
 	return _Irohaics20bank.Contract.GrantRole(&_Irohaics20bank.TransactOpts, role, account)
 }
 
-// Mint is a paid mutator transaction binding the contract method 0xa0712d68.
+// Mint is a paid mutator transaction binding the contract method 0x1249c58b.
 //
-// Solidity: function mint(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactor) Mint(opts *bind.TransactOpts, requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.contract.Transact(opts, "mint", requestId)
+// Solidity: function mint() returns()
+func (_Irohaics20bank *Irohaics20bankTransactor) Mint(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Irohaics20bank.contract.Transact(opts, "mint")
 }
 
-// Mint is a paid mutator transaction binding the contract method 0xa0712d68.
+// Mint is a paid mutator transaction binding the contract method 0x1249c58b.
 //
-// Solidity: function mint(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankSession) Mint(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.Mint(&_Irohaics20bank.TransactOpts, requestId)
+// Solidity: function mint() returns()
+func (_Irohaics20bank *Irohaics20bankSession) Mint() (*types.Transaction, error) {
+	return _Irohaics20bank.Contract.Mint(&_Irohaics20bank.TransactOpts)
 }
 
-// Mint is a paid mutator transaction binding the contract method 0xa0712d68.
+// Mint is a paid mutator transaction binding the contract method 0x1249c58b.
 //
-// Solidity: function mint(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactorSession) Mint(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.Mint(&_Irohaics20bank.TransactOpts, requestId)
+// Solidity: function mint() returns()
+func (_Irohaics20bank *Irohaics20bankTransactorSession) Mint() (*types.Transaction, error) {
+	return _Irohaics20bank.Contract.Mint(&_Irohaics20bank.TransactOpts)
 }
 
 // RenounceRole is a paid mutator transaction binding the contract method 0x36568abe.
@@ -575,324 +637,6 @@ func (_Irohaics20bank *Irohaics20bankSession) SetIcs20Contract(addr common.Addre
 // Solidity: function setIcs20Contract(address addr) returns()
 func (_Irohaics20bank *Irohaics20bankTransactorSession) SetIcs20Contract(addr common.Address) (*types.Transaction, error) {
 	return _Irohaics20bank.Contract.SetIcs20Contract(&_Irohaics20bank.TransactOpts, addr)
-}
-
-// SetNextBurnRequestId is a paid mutator transaction binding the contract method 0x7821a935.
-//
-// Solidity: function setNextBurnRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactor) SetNextBurnRequestId(opts *bind.TransactOpts, requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.contract.Transact(opts, "setNextBurnRequestId", requestId)
-}
-
-// SetNextBurnRequestId is a paid mutator transaction binding the contract method 0x7821a935.
-//
-// Solidity: function setNextBurnRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankSession) SetNextBurnRequestId(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.SetNextBurnRequestId(&_Irohaics20bank.TransactOpts, requestId)
-}
-
-// SetNextBurnRequestId is a paid mutator transaction binding the contract method 0x7821a935.
-//
-// Solidity: function setNextBurnRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactorSession) SetNextBurnRequestId(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.SetNextBurnRequestId(&_Irohaics20bank.TransactOpts, requestId)
-}
-
-// SetNextMintRequestId is a paid mutator transaction binding the contract method 0x997188a8.
-//
-// Solidity: function setNextMintRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactor) SetNextMintRequestId(opts *bind.TransactOpts, requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.contract.Transact(opts, "setNextMintRequestId", requestId)
-}
-
-// SetNextMintRequestId is a paid mutator transaction binding the contract method 0x997188a8.
-//
-// Solidity: function setNextMintRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankSession) SetNextMintRequestId(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.SetNextMintRequestId(&_Irohaics20bank.TransactOpts, requestId)
-}
-
-// SetNextMintRequestId is a paid mutator transaction binding the contract method 0x997188a8.
-//
-// Solidity: function setNextMintRequestId(uint256 requestId) returns()
-func (_Irohaics20bank *Irohaics20bankTransactorSession) SetNextMintRequestId(requestId *big.Int) (*types.Transaction, error) {
-	return _Irohaics20bank.Contract.SetNextMintRequestId(&_Irohaics20bank.TransactOpts, requestId)
-}
-
-// Irohaics20bankBurnRequestedIterator is returned from FilterBurnRequested and is used to iterate over the raw logs and unpacked data for BurnRequested events raised by the Irohaics20bank contract.
-type Irohaics20bankBurnRequestedIterator struct {
-	Event *Irohaics20bankBurnRequested // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *Irohaics20bankBurnRequestedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(Irohaics20bankBurnRequested)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(Irohaics20bankBurnRequested)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *Irohaics20bankBurnRequestedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *Irohaics20bankBurnRequestedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// Irohaics20bankBurnRequested represents a BurnRequested event raised by the Irohaics20bank contract.
-type Irohaics20bankBurnRequested struct {
-	Id           *big.Int
-	SrcAccountId string
-	AssetId      string
-	Description  string
-	Amount       string
-	Raw          types.Log // Blockchain specific contextual infos
-}
-
-// FilterBurnRequested is a free log retrieval operation binding the contract event 0xb1b0f000252bdaf51b9d8a3b02b12c0f07b278c2d25c1767a70728c522668510.
-//
-// Solidity: event BurnRequested(uint256 id, string srcAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) FilterBurnRequested(opts *bind.FilterOpts) (*Irohaics20bankBurnRequestedIterator, error) {
-
-	logs, sub, err := _Irohaics20bank.contract.FilterLogs(opts, "BurnRequested")
-	if err != nil {
-		return nil, err
-	}
-	return &Irohaics20bankBurnRequestedIterator{contract: _Irohaics20bank.contract, event: "BurnRequested", logs: logs, sub: sub}, nil
-}
-
-// WatchBurnRequested is a free log subscription operation binding the contract event 0xb1b0f000252bdaf51b9d8a3b02b12c0f07b278c2d25c1767a70728c522668510.
-//
-// Solidity: event BurnRequested(uint256 id, string srcAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) WatchBurnRequested(opts *bind.WatchOpts, sink chan<- *Irohaics20bankBurnRequested) (event.Subscription, error) {
-
-	logs, sub, err := _Irohaics20bank.contract.WatchLogs(opts, "BurnRequested")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(Irohaics20bankBurnRequested)
-				if err := _Irohaics20bank.contract.UnpackLog(event, "BurnRequested", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseBurnRequested is a log parse operation binding the contract event 0xb1b0f000252bdaf51b9d8a3b02b12c0f07b278c2d25c1767a70728c522668510.
-//
-// Solidity: event BurnRequested(uint256 id, string srcAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) ParseBurnRequested(log types.Log) (*Irohaics20bankBurnRequested, error) {
-	event := new(Irohaics20bankBurnRequested)
-	if err := _Irohaics20bank.contract.UnpackLog(event, "BurnRequested", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// Irohaics20bankMintRequestedIterator is returned from FilterMintRequested and is used to iterate over the raw logs and unpacked data for MintRequested events raised by the Irohaics20bank contract.
-type Irohaics20bankMintRequestedIterator struct {
-	Event *Irohaics20bankMintRequested // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *Irohaics20bankMintRequestedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(Irohaics20bankMintRequested)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(Irohaics20bankMintRequested)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *Irohaics20bankMintRequestedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *Irohaics20bankMintRequestedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// Irohaics20bankMintRequested represents a MintRequested event raised by the Irohaics20bank contract.
-type Irohaics20bankMintRequested struct {
-	Id            *big.Int
-	DestAccountId string
-	AssetId       string
-	Description   string
-	Amount        string
-	Raw           types.Log // Blockchain specific contextual infos
-}
-
-// FilterMintRequested is a free log retrieval operation binding the contract event 0xd0c2e6a3cbb4beac7c4f2ed15e8ebb1b0f63b4c0a731577bded43cee8287a49e.
-//
-// Solidity: event MintRequested(uint256 id, string destAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) FilterMintRequested(opts *bind.FilterOpts) (*Irohaics20bankMintRequestedIterator, error) {
-
-	logs, sub, err := _Irohaics20bank.contract.FilterLogs(opts, "MintRequested")
-	if err != nil {
-		return nil, err
-	}
-	return &Irohaics20bankMintRequestedIterator{contract: _Irohaics20bank.contract, event: "MintRequested", logs: logs, sub: sub}, nil
-}
-
-// WatchMintRequested is a free log subscription operation binding the contract event 0xd0c2e6a3cbb4beac7c4f2ed15e8ebb1b0f63b4c0a731577bded43cee8287a49e.
-//
-// Solidity: event MintRequested(uint256 id, string destAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) WatchMintRequested(opts *bind.WatchOpts, sink chan<- *Irohaics20bankMintRequested) (event.Subscription, error) {
-
-	logs, sub, err := _Irohaics20bank.contract.WatchLogs(opts, "MintRequested")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(Irohaics20bankMintRequested)
-				if err := _Irohaics20bank.contract.UnpackLog(event, "MintRequested", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseMintRequested is a log parse operation binding the contract event 0xd0c2e6a3cbb4beac7c4f2ed15e8ebb1b0f63b4c0a731577bded43cee8287a49e.
-//
-// Solidity: event MintRequested(uint256 id, string destAccountId, string assetId, string description, string amount)
-func (_Irohaics20bank *Irohaics20bankFilterer) ParseMintRequested(log types.Log) (*Irohaics20bankMintRequested, error) {
-	event := new(Irohaics20bankMintRequested)
-	if err := _Irohaics20bank.contract.UnpackLog(event, "MintRequested", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
 }
 
 // Irohaics20bankRoleAdminChangedIterator is returned from FilterRoleAdminChanged and is used to iterate over the raw logs and unpacked data for RoleAdminChanged events raised by the Irohaics20bank contract.

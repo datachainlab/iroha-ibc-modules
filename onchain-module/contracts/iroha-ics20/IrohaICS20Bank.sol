@@ -13,13 +13,11 @@ contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
     bytes32 public constant BANK_ROLE = keccak256("BANK_ROLE");
 
     struct BurnRequest {
-        bool active;
         string assetId;
         string amount;
     }
 
     struct MintRequest {
-        bool active;
         string destAccountId;
         string assetId;
         string description;
@@ -27,8 +25,10 @@ contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
     }
 
     string private bankAccountId;
-    uint256 private nextBurnRequestId;
-    uint256 private nextMintRequestId;
+    uint256 private beginBurnRequestSeq;
+    uint256 private endBurnRequestSeq;
+    uint256 private beginMintRequestSeq;
+    uint256 private endMintRequestSeq;
     mapping(uint256 => BurnRequest) private burnRequests;
     mapping(uint256 => MintRequest) private mintRequests;
 
@@ -48,49 +48,47 @@ contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
         grantRole(BANK_ROLE, addr);
     }
 
-    function setNextBurnRequestId(uint256 requestId) external onlyRole(ADMIN_ROLE) {
-        nextBurnRequestId = requestId;
-    }
-
-    function setNextMintRequestId(uint256 requestId) external onlyRole(ADMIN_ROLE) {
-        nextMintRequestId = requestId;
-    }
-
     function requestBurn(string calldata srcAccountId, string calldata assetId, string calldata description, string calldata amount) external override onlyRole(ICS20_ROLE) {
         IrohaApi.transferAsset(srcAccountId, bankAccountId, assetId, description, amount);
-        burnRequests[nextBurnRequestId] = BurnRequest({
-            active: true,
+        burnRequests[endBurnRequestSeq] = BurnRequest({
             assetId: assetId,
             amount: amount
         });
-        emit BurnRequested(nextBurnRequestId, srcAccountId, assetId, description, amount);
-        nextBurnRequestId += 1;
+        endBurnRequestSeq += 1;
     }
 
-    function burn(uint256 requestId) external override onlyRole(BANK_ROLE) {
-        BurnRequest storage request = burnRequests[requestId];
-        require(request.active, "BurnRequest is inactive");
-        request.active = false;
+    function burn() external override onlyRole(BANK_ROLE) {
+        require(countPendingBurnRequests() > 0, "no pending burn request");
+        BurnRequest memory request = burnRequests[beginBurnRequestSeq];
+        delete burnRequests[beginBurnRequestSeq];
+        beginBurnRequestSeq += 1;
         IrohaApi.subtractAssetQuantity(request.assetId, request.amount);
     }
 
+    function countPendingBurnRequests() public override view returns(uint) {
+        return endBurnRequestSeq - beginBurnRequestSeq;
+    }
+
     function requestMint(string calldata destAccountId, string calldata assetId, string calldata description, string calldata amount) external override onlyRole(ICS20_ROLE) {
-        mintRequests[nextMintRequestId] = MintRequest({
-            active: true,
+        mintRequests[endMintRequestSeq] = MintRequest({
             destAccountId: destAccountId,
             assetId: assetId,
             description: description,
             amount: amount
         });
-        emit MintRequested(nextMintRequestId, destAccountId, assetId, description, amount);
-        nextMintRequestId += 1;
+        endMintRequestSeq += 1;
     }
 
-    function mint(uint256 requestId) override external onlyRole(BANK_ROLE) {
-        MintRequest storage request = mintRequests[requestId];
-        require(request.active, "MintRequest is inactive");
-        request.active = false;
+    function mint() override external onlyRole(BANK_ROLE) {
+        require(countPendingMintRequests() > 0, "no pending mint request");
+        MintRequest memory request = mintRequests[beginMintRequestSeq];
+        delete mintRequests[beginMintRequestSeq];
+        beginMintRequestSeq += 1;
         IrohaApi.addAssetQuantity(request.assetId, request.amount);
         IrohaApi.transferAsset(bankAccountId, request.destAccountId, request.assetId, request.description, request.amount);
+    }
+
+    function countPendingMintRequests() public override view returns(uint) {
+        return endMintRequestSeq - beginMintRequestSeq;
     }
 }

@@ -744,62 +744,6 @@ func (chain *Chain) FindPacket(
 	return nil, fmt.Errorf("packet not found: sourcePortID=%v sourceChannel=%v sequence=%v", sourcePortID, sourceChannel, sequence)
 }
 
-func (chain *Chain) FindBurnRequestedEvents(ctx context.Context) ([]irohaics20bank.Irohaics20bankBurnRequested, error) {
-	// get logs containing BurnRequested events
-	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
-		BlockHash: &common.Hash{}, // TODO: this is dirty hack to get specify the latest block
-		Addresses: []common.Address{
-			chain.ContractConfig.GetIrohaICS20BankAddress(),
-		},
-		Topics: [][]common.Hash{{
-			abiBurnRequested.ID,
-		}},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// parse logs as events
-	events := make([]irohaics20bank.Irohaics20bankBurnRequested, len(logs))
-	for i, log := range logs {
-		if values, err := abiBurnRequested.Inputs.Unpack(log.Data); err != nil {
-			return nil, err
-		} else if err := abiBurnRequested.Inputs.Copy(&events[i], values); err != nil {
-			return nil, err
-		}
-	}
-
-	return events, nil
-}
-
-func (chain *Chain) FindMintRequestedEvents(ctx context.Context) ([]irohaics20bank.Irohaics20bankMintRequested, error) {
-	// get logs containing MintRequested events
-	logs, err := chain.client.FilterLogs(ctx, ethereum.FilterQuery{
-		BlockHash: &common.Hash{}, // TODO: this is dirty hack to get specify the latest block
-		Addresses: []common.Address{
-			chain.ContractConfig.GetIrohaICS20BankAddress(),
-		},
-		Topics: [][]common.Hash{{
-			abiMintRequested.ID,
-		}},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// parse logs as events
-	events := make([]irohaics20bank.Irohaics20bankMintRequested, len(logs))
-	for i, log := range logs {
-		if values, err := abiMintRequested.Inputs.Unpack(log.Data); err != nil {
-			return nil, err
-		} else if err := abiMintRequested.Inputs.Copy(&events[i], values); err != nil {
-			return nil, err
-		}
-	}
-
-	return events, nil
-}
-
 func packetToCallData(packet channeltypes.Packet) ibchandler.PacketData {
 	return ibchandler.PacketData{
 		Sequence:           packet.Sequence,
