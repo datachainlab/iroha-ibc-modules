@@ -151,15 +151,11 @@ func sendTransferCmd(ctx *config.Context) *cobra.Command {
 
 func burnCmd(ctx *config.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "burn [chain-id] [bank-account-id] [burn-request-id]",
-		Args: cobra.RangeArgs(2, 3),
+		Use:  "burn [chain-id] [bank-account-id]",
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			chainID := args[0]
 			bankAccountID := args[1]
-			burnRequestID := ""
-			if len(args) > 2 {
-				burnRequestID = args[2]
-			}
 
 			// find chain config
 			cfg, err := findIrohaChainConfig(ctx, chainID)
@@ -178,11 +174,7 @@ func burnCmd(ctx *config.Context) *cobra.Command {
 			}
 
 			// submit burn tx
-			tx, err := contract.Transact(
-				transactOpts(cmd.Context(), bankAccountID),
-				"burn",
-				burnRequestID,
-			)
+			tx, err := contract.Transact(transactOpts(cmd.Context(), bankAccountID), "burn")
 			if err != nil {
 				return err
 			}
@@ -201,15 +193,11 @@ func burnCmd(ctx *config.Context) *cobra.Command {
 
 func mintCmd(ctx *config.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "mint [chain-id] [bank-account-id] [mint-request-id]",
-		Args: cobra.RangeArgs(2, 3),
+		Use:  "mint [chain-id] [bank-account-id]",
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			chainID := args[0]
 			bankAccountID := args[1]
-			mintRequestID := ""
-			if len(args) > 2 {
-				mintRequestID = args[2]
-			}
 
 			// find chain config
 			cfg, err := findIrohaChainConfig(ctx, chainID)
@@ -228,11 +216,7 @@ func mintCmd(ctx *config.Context) *cobra.Command {
 			}
 
 			// submit mint tx
-			tx, err := contract.Transact(
-				transactOpts(cmd.Context(), bankAccountID),
-				"mint",
-				mintRequestID,
-			)
+			tx, err := contract.Transact(transactOpts(cmd.Context(), bankAccountID), "mint")
 			if err != nil {
 				return err
 			}
