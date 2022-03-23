@@ -2,14 +2,20 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/command"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/crypto"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/iroha.generated/protocol"
+	"github.com/datachainlab/iroha-ibc-modules/iroha-go/query"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"google.golang.org/grpc"
 )
 
 func accountIDToAddress(accountID string) common.Address {
@@ -49,5 +55,61 @@ func waitForReceipt(ctx context.Context, rpcCli *rpc.Client, txHash common.Hash)
 			case <-queryTicker.C:
 			}
 		}
+	}
+}
+
+func dialToIrohad(endpoint string) (*grpc.ClientConn, error) {
+	return grpc.Dial(
+		endpoint,
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+	)
+}
+
+func makeCommandClient(grpcConn *grpc.ClientConn) command.CommandClient {
+	return command.New(grpcConn, time.Minute)
+}
+
+func makeQueryClient(grpcConn *grpc.ClientConn) query.QueryClient {
+	return query.New(grpcConn, time.Minute)
+}
+
+func sendIrohaTx(ctx context.Context, grpcConn *grpc.ClientConn, tx *protocol.Transaction, keys ...string) (*protocol.ToriiResponse, error) {
+	// sign tx
+	if sigs, err := crypto.SignTransaction(tx, keys...); err != nil {
+		return nil, fmt.Errorf("SignTransaction failed: %w", err)
+	} else {
+		tx.Signatures = sigs
+	}
+
+	// make client
+	client := makeCommandClient(grpcConn)
+
+	// send tx
+	if txHash, err := client.SendTransaction(ctx, tx); err != nil {
+		return nil, fmt.Errorf("SendTransaction failed: %w", err)
+	} else if res, err := client.TxStatusStream(ctx, txHash); err != nil {
+		return nil, fmt.Errorf("TxStatusStream failed: %w", err)
+	} else {
+		return res, nil
+	}
+}
+
+func sendIrohaQuery(ctx context.Context, grpcConn *grpc.ClientConn, q *protocol.Query, key string) (*protocol.QueryResponse, error) {
+	// sign query
+	if sig, err := crypto.SignQuery(q, key); err != nil {
+		return nil, fmt.Errorf("SignQuery failed: %w", err)
+	} else {
+		q.Signature = sig
+	}
+
+	// make client
+	client := makeQueryClient(grpcConn)
+
+	// send query
+	if res, err := client.SendQuery(ctx, q); err != nil {
+		return nil, fmt.Errorf("SendQuery failed: %w", err)
+	} else {
+		return res, nil
 	}
 }
