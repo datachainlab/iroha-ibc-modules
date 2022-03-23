@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/datachainlab/iroha-ibc-modules/relayer/chains/iroha"
@@ -33,25 +31,9 @@ func setBankCmd(ctx *config.Context) *cobra.Command {
 			bankAccountID := args[1]
 
 			// find chain config
-			var cfg iroha.ChainConfig
-			{
-				var found bool
-				for _, config := range ctx.Config.Chains {
-					if err := config.Init(ctx.Codec); err != nil {
-						return err
-					} else if chain, err := config.Build(); err != nil {
-						return err
-					} else if chain.ChainID() == chainID {
-						if err := json.Unmarshal(config.Chain, &cfg); err != nil {
-							return err
-						}
-						found = true
-						break
-					}
-				}
-				if !found {
-					return fmt.Errorf("chain config not found for chain_id:%s", chainID)
-				}
+			cfg, err := findIrohaChainConfig(ctx, chainID)
+			if err != nil {
+				return err
 			}
 
 			// create IrohaICS20Bank client
