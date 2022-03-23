@@ -4,7 +4,14 @@ set -eu
 
 source $(cd $(dirname ${BASH_SOURCE:-$0}); pwd)/vars
 
+ASSET_ID='coin#test'
+AMOUNT=1000
+BANK0_ACCOUNT_ID='admin@test'
+BANK0_PRIVATE_KEY='f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70'
+
 set -x
-$RLY iroha tx set-bank $IBC_ZERO 'admin@test'
-$RLY iroha tx set-bank $IBC_ONE  'admin@test'
+$RLY iroha tx set-bank $IBC_ZERO $BANK_ACCOUNT_ID
+$RLY iroha tx set-bank $IBC_ONE  $BANK_ACCOUNT_ID
+
+$RLY iroha api add-asset-quantity $IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
 set +x
