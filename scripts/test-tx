@@ -28,25 +28,54 @@ echo 'Bank accounts are being registered on both chains ...'
 $RLY iroha tx set-bank $IBC_ZERO $BANK0_ACCOUNT_ID
 $RLY iroha tx set-bank $IBC_ONE  $BANK1_ACCOUNT_ID
 
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+
 echo 'Bank0 is minting tokens to Alice on chain0 ...'
 $RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
 $RLY iroha api subtract-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
 $RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
 $RLY iroha api transfer-asset		$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ALICE_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT
 
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+
 echo 'Alice is executing sendTransfer on chain0 ...'
 $RLY iroha tx send-transfer $PATH_NAME $IBC_ZERO $ALICE_ACCOUNT_ID $CAROL_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT
 
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+
 echo 'TODO: Bank is executing burn on chain0 ...'
+
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
 echo 'Relayers are relaying the packet ...'
 ${RLY} tx relay $PATH_NAME
 ${RLY} tx acks $PATH_NAME
 
+echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+
 echo 'TODO: Bank is executing mint on chain1 ...'
-echo 'TODO: Bob is executing sendTransfer on chain1 ...'
+
+echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+
+echo 'TODO: Carol is executing sendTransfer on chain1 ...'
+
+echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+
 echo 'TODO: Relayers are relaying the packet ...'
+
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+
 echo 'TODO: Bank is executing mint on chain0 ...'
-echo 'TODO: Alice is executing sendTransfer on chain0 ...'
+
+echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
 set +x
