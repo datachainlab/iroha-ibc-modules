@@ -27,7 +27,7 @@ func transactionCmd(ctx *config.Context) *cobra.Command {
 func setBankCmd(ctx *config.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "set-bank [chain-id] [bank-account-id]",
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			chainID := args[0]
 			bankAccountID := args[1]
