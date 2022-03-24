@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
 import "./IIrohaICS20Bank.sol";
 import "./IrohaUtil.sol";
-import "../old-experiments/IrohaApi.sol";
+import "../IrohaApi.sol";
 
 contract IrohaICS20Bank is Context, AccessControl, IIrohaICS20Bank {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");

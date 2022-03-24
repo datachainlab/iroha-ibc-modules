@@ -8,7 +8,6 @@ import "@hyperledger-labs/yui-ibc-solidity/contracts/core/IBCHost.sol";
 import "./IIrohaICS20Transfer.sol";
 import "./IrohaAssetPacketData.sol";
 import "./IrohaUtil.sol";
-import "../old-experiments/IrohaApi.sol";
 
 abstract contract IrohaICS20Transfer is IIrohaICS20Transfer {
 
