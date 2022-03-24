@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/client"
-	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/contract/irohaics20bank"
 	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/irohaeth"
 	irohatypes "github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/irohaeth/types"
 )
@@ -47,9 +46,7 @@ var (
 	abiSendPacket,
 	abiGeneratedClientIdentifier,
 	abiGeneratedConnectionIdentifier,
-	abiGeneratedChannelIdentifier,
-	abiBurnRequested,
-	abiMintRequested abi.Event
+	abiGeneratedChannelIdentifier abi.Event
 )
 
 func init() {
@@ -61,16 +58,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	parsedIrohaIcs20BankABI, err := abi.JSON(strings.NewReader(irohaics20bank.Irohaics20bankABI))
-	if err != nil {
-		panic(err)
-	}
 	abiSendPacket = parsedHandlerABI.Events["SendPacket"]
 	abiGeneratedClientIdentifier = parsedHostABI.Events["GeneratedClientIdentifier"]
 	abiGeneratedConnectionIdentifier = parsedHostABI.Events["GeneratedConnectionIdentifier"]
 	abiGeneratedChannelIdentifier = parsedHostABI.Events["GeneratedChannelIdentifier"]
-	abiBurnRequested = parsedIrohaIcs20BankABI.Events["BurnRequested"]
-	abiMintRequested = parsedIrohaIcs20BankABI.Events["MintRequested"]
 }
 
 type Chain struct {
