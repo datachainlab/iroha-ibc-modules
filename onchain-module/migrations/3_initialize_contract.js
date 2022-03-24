@@ -29,8 +29,9 @@ module.exports = async function (deployer) {
     () => irohaIcs20Bank.setIcs20Contract(IrohaICS20TransferBank.address),
   ]) {
     const result = await f();
+    console.dir(result, {depth:null});
     if(!result.receipt.status) {
-      console.log(result);
+      console.error(result);
       throw new Error(`transaction failed to execute. ${result.tx}`);
     }
   }
