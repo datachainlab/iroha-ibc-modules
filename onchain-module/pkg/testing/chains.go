@@ -2,7 +2,6 @@ package testing
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -36,6 +35,7 @@ const (
 	DefaultDelayPeriod    uint64 = 3 * BlockTime
 	DefaultPrefix                = "ibc"
 	TransferPort                 = "transfer"
+	IrohaTransferPort            = "irohatransfer"
 
 	RelayerKeyIndex uint32 = 0
 
@@ -78,10 +78,13 @@ type Chain struct {
 	ICS20Transfer irohaeth.Ics20transferbank
 	ICS20Bank     irohaeth.Ics20bank
 
+	// Iroha-ICS20 Modules
+	IrohaICS20Transfer irohaeth.Irohaics20transferbank
+	IrohaICS20Bank     irohaeth.Irohaics20bank
+
 	ContractConfig ContractConfig
 
 	accountIds []string
-	keys       map[uint32]*ecdsa.PrivateKey
 
 	// State
 	LastContractState client.ContractState
@@ -101,6 +104,9 @@ type ContractConfig interface {
 	GetSimpleTokenAddress() common.Address
 	GetICS20TransferBankAddress() common.Address
 	GetICS20BankAddress() common.Address
+
+	GetIrohaICS20TransferBankAddress() common.Address
+	GetIrohaICS20BankAddress() common.Address
 }
 
 func NewChain(t *testing.T, client client.Client, config ContractConfig, accountIds []string, ibcID uint64) *Chain {
@@ -128,21 +134,30 @@ func NewChain(t *testing.T, client client.Client, config ContractConfig, account
 	if err != nil {
 		t.Error(err)
 	}
+	irohaics20transfer, err := irohaeth.NewIrohaics20transferbank(config.GetIrohaICS20TransferBankAddress(), client)
+	if err != nil {
+		t.Error(err)
+	}
+	irohaics20bank, err := irohaeth.NewIrohaics20bank(config.GetIrohaICS20BankAddress(), client)
+	if err != nil {
+		t.Error(err)
+	}
 
 	return &Chain{
 		t:              t,
 		client:         client,
 		ContractConfig: config,
 		accountIds:     accountIds,
-		keys:           make(map[uint32]*ecdsa.PrivateKey),
 		IBCID:          ibcID,
 
-		IBCHost:       *ibcHost,
-		IBCHandler:    *ibcHandler,
-		IBCIdentifier: *ibcIdentifier,
-		SimpleToken:   *simpletoken,
-		ICS20Transfer: *ics20transfer,
-		ICS20Bank:     *ics20bank,
+		IBCHost:            *ibcHost,
+		IBCHandler:         *ibcHandler,
+		IBCIdentifier:      *ibcIdentifier,
+		SimpleToken:        *simpletoken,
+		ICS20Transfer:      *ics20transfer,
+		ICS20Bank:          *ics20bank,
+		IrohaICS20Transfer: *irohaics20transfer,
+		IrohaICS20Bank:     *irohaics20bank,
 	}
 }
 

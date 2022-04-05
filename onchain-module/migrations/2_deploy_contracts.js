@@ -11,6 +11,9 @@ const ICS20TransferBank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/
 const ICS20Bank = artifacts.require("@hyperledger-labs/yui-ibc-solidity/ICS20Bank");
 const MultisigClient = artifacts.require("@datachainlab/ibc-ethmultisig-client/MultisigClient");
 
+const IrohaICS20TransferBank = artifacts.require("IrohaICS20TransferBank");
+const IrohaICS20Bank = artifacts.require("IrohaICS20Bank");
+
 module.exports = async function(deployer) {
   await deployer.deploy(IBCIdentifier);
   await deployer.link(IBCIdentifier, [IBCHost, IBCHandler, MockClient, MultisigClient]);
@@ -36,4 +39,7 @@ module.exports = async function(deployer) {
   await deployer.deploy(SimpleToken, "simple", "simple", 1000000);
   await deployer.deploy(ICS20Bank)
   await deployer.deploy(ICS20TransferBank, IBCHost.address, IBCHandler.address, ICS20Bank.address);
+
+  await deployer.deploy(IrohaICS20Bank)
+  await deployer.deploy(IrohaICS20TransferBank, IBCHost.address, IBCHandler.address, IrohaICS20Bank.address);
 };

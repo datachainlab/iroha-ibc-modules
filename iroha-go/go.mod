@@ -3,7 +3,7 @@ module github.com/datachainlab/iroha-ibc-modules/iroha-go
 go 1.16
 
 require (
-	github.com/crpt/go-crpt v0.1.4
+	github.com/crpt/go-crpt v0.1.3
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/stretchr/testify v1.7.0

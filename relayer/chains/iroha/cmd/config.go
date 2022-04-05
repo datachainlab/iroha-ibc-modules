@@ -28,8 +28,10 @@ func configCmd(ctx *config.Context) *cobra.Command {
 
 func setContractAddressCmd(ctx *config.Context) *cobra.Command {
 	const (
-		flagIbcHostAddress    = "ibc-host"
-		flagIbcHandlerAddress = "ibc-handler"
+		flagIbcHostAddress            = "ibc-host"
+		flagIbcHandlerAddress         = "ibc-handler"
+		flagIrohaIcs20BankAddress     = "iroha-ics20-bank"
+		flagIrohaIcs20TransferAddress = "iroha-ics20-transfer"
 	)
 	cmd := &cobra.Command{
 		Use:  "set-contract [chain-id]",
@@ -74,6 +76,18 @@ func setContractAddressCmd(ctx *config.Context) *cobra.Command {
 					cfg.IbcHandlerAddress = v
 				}
 
+				if v, err := cmd.Flags().GetString(flagIrohaIcs20BankAddress); err != nil {
+					return err
+				} else {
+					cfg.IrohaIcs20BankAddress = v
+				}
+
+				if v, err := cmd.Flags().GetString(flagIrohaIcs20TransferAddress); err != nil {
+					return err
+				} else {
+					cfg.IrohaIcs20TransferAddress = v
+				}
+
 				if cbz, err := utils.MarshalJSONAny(ctx.Codec, &cfg); err != nil {
 					return err
 				} else {
@@ -102,6 +116,8 @@ func setContractAddressCmd(ctx *config.Context) *cobra.Command {
 
 	cmd.Flags().String(flagIbcHostAddress, "", "the address of the IBCHost contract")
 	cmd.Flags().String(flagIbcHandlerAddress, "", "the address of the IBCHandler contract")
+	cmd.Flags().String(flagIrohaIcs20BankAddress, "", "the address of the IrohaICS20Bank contract")
+	cmd.Flags().String(flagIrohaIcs20TransferAddress, "", "the address of the IrohaICS20TransferBank contract")
 
 	return cmd
 }

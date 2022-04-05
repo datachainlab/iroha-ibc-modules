@@ -1,68 +1,50 @@
-SOLC ?= solc
+ABIGEN ?= abigen
 
 .PHONY: compile
 compile:
-	$(SOLC) --no-color --bin --overwrite -o build --base-path ./contracts ./contracts/Main.sol ./contracts/IrohaExperiment.sol
+	npm run compile
 
 .PHONY: clean
 clean:
 	rm -rf ./build
 
-.PHONY: deploy-library
-deploy-library:
-	python client.py deploy_contract ./build/Library.bin
-
-.PHONY: link
-link:
-ifndef LIBRARY_ADDRESS
-	$(error LIBRARY_ADDRESS is not specified)
-else
-	$(SOLC) --no-color --link --libraries Library.sol:Library=0x$(LIBRARY_ADDRESS) build/Main.bin
-endif
-
-.PHONY: deploy-counter
-deploy-counter:
-	python client.py deploy_contract ./build/Counter.bin
-
-.PHONY: deploy-main
-deploy-main:
-	python client.py deploy_contract ./build/Main.bin
-
-.PHONY: deploy-iroha-experiment
-deploy-iroha-experiment:
-	python client.py deploy_contract ./build/IrohaExperiment.bin
-
-.PHONY: set-counter-address
-set-counter-address:
-ifndef MAIN_ADDRESS
-	$(error MAIN_ADDRESS is not specified)
-else ifndef COUNTER_ADDRESS
-	$(error COUNTER_ADDRESS is not specified)
-else
-	python client.py set_counter_address $(MAIN_ADDRESS) $(COUNTER_ADDRESS)
-endif
-
-.PHONY: test
-test:
-ifndef MAIN_ADDRESS
-	$(error MAIN_ADDRESS is not specified)
-else
-	python client.py test $(MAIN_ADDRESS)
-endif
-
-.PHONY: iroha-experiment
-iroha-experiment:
-ifndef IROHA_EXPERIMENT_ADDRESS
-	$(error IROHA_EXPERIMENT_ADDRESS is not specified)
-else
-	python client.py iroha_experiment $(IROHA_EXPERIMENT_ADDRESS)
-endif
+.PHONY: migrate
+migrate:
+	npm run migrate
 
 .PHONY: integration-test
 integration-test:
 	go test -v ./tests/integration/... -count=1
 
+.PHONY: e2e-test
+e2e-test:
+	go test -v ./tests/e2e/... -count=1
+
 .PHONY: migrate-e2e
 migrate-e2e:
 	npm run migrate:one
 	npm run migrate:two
+
+.PHONY: protocgen-go
+protocgen-go:
+	@echo "Generating go files from proto files"
+ifndef SOLPB_DIR
+	$(error SOLPB_DIR is not specified)
+else
+	docker run \
+		-v $(CURDIR):/workspace \
+		-v $(SOLPB_DIR):/solpb \
+		-e SOLPB_DIR=/solpb \
+		--workdir /workspace \
+		tendermintdev/sdk-proto-gen \
+		sh ./scripts/protocgen-go.sh
+endif
+
+.PHONY: protocgen-sol
+protocgen-sol:
+	@echo "Generating sol files from proto files"
+	./scripts/protocgen-sol.sh
+
+.PHONY: abi
+abi:
+	ABIGEN=$(ABIGEN) ./scripts/abigen.sh

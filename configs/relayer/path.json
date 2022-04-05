@@ -4,7 +4,7 @@
     "client-id": "ethmultisig-client-0",
     "connection-id": "connection-0",
     "channel-id": "channel-0",
-    "port-id": "transfer",
+    "port-id": "irohatransfer",
     "order": "unordered",
     "version": "ics20-1"
   },
@@ -13,7 +13,7 @@
     "client-id": "ethmultisig-client-0",
     "connection-id": "connection-0",
     "channel-id": "channel-0",
-    "port-id": "transfer",
+    "port-id": "irohatransfer",
     "order": "unordered",
     "version": "ics20-1"
   },

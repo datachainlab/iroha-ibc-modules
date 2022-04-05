@@ -16,6 +16,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/contract/irohaics20bank"
+	"github.com/datachainlab/iroha-ibc-modules/onchain-module/pkg/contract/irohaics20transferbank"
 )
 
 type BoundContract struct {
@@ -140,5 +143,53 @@ func NewIbcHandler(address common.Address, conn *rpc.Client) (*IbcHandler, error
 	return &IbcHandler{
 		Ibchandler:    *ibcHandler,
 		BoundContract: boundContract,
+	}, nil
+}
+
+type IrohaIcs20Bank struct {
+	irohaics20bank.Irohaics20bank
+	BoundContract
+}
+
+func NewIrohaIcs20Bank(address common.Address, conn *rpc.Client) (*IrohaIcs20Bank, error) {
+	irohaIcs20Bank, err := irohaics20bank.NewIrohaics20bank(address, ethclient.NewClient(conn))
+	if err != nil {
+		return nil, err
+	}
+
+	parsedABI, err := abi.JSON(strings.NewReader(irohaics20bank.Irohaics20bankABI))
+	if err != nil {
+		return nil, err
+	}
+
+	boundContract := NewBoundContract(address, parsedABI, conn)
+
+	return &IrohaIcs20Bank{
+		Irohaics20bank: *irohaIcs20Bank,
+		BoundContract:  boundContract,
+	}, nil
+}
+
+type IrohaIcs20Transfer struct {
+	irohaics20transferbank.Irohaics20transferbank
+	BoundContract
+}
+
+func NewIrohaIcs20Transfer(address common.Address, conn *rpc.Client) (*IrohaIcs20Transfer, error) {
+	irohaIcs20TransferBank, err := irohaics20transferbank.NewIrohaics20transferbank(address, ethclient.NewClient(conn))
+	if err != nil {
+		return nil, err
+	}
+
+	parsedABI, err := abi.JSON(strings.NewReader(irohaics20transferbank.Irohaics20transferbankABI))
+	if err != nil {
+		return nil, err
+	}
+
+	boundContract := NewBoundContract(address, parsedABI, conn)
+
+	return &IrohaIcs20Transfer{
+		Irohaics20transferbank: *irohaIcs20TransferBank,
+		BoundContract:          boundContract,
 	}, nil
 }

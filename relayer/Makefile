@@ -5,4 +5,4 @@ build:
 .PHONY: proto-gen
 proto-gen:
 	@echo "Generating Protobuf files"
-	docker run --rm -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen sh ./scripts/protocgen.sh
+	docker run --rm -v `git rev-parse --show-toplevel`:/repo --workdir /repo/relayer tendermintdev/sdk-proto-gen sh ./scripts/protocgen.sh

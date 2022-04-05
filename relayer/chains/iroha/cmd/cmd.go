@@ -13,6 +13,8 @@ func IrohaCmd(ctx *config.Context) *cobra.Command {
 
 	cmd.AddCommand(
 		configCmd(ctx),
+		transactionCmd(ctx),
+		apiCmd(ctx),
 	)
 
 	return cmd
