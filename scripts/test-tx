@@ -2,6 +2,34 @@
 
 set -eu
 
+C_RESET='\033[0m'
+C_GREEN='\033[0;32m'
+C_BLUE='\033[0;34m'
+
+# println echos string
+function println() {
+  echo -e "$1"
+}
+
+# successln echos in green color
+function successln() {
+  println "${C_GREEN}${1}${C_RESET}"
+}
+
+# infoln echos in blue color
+function infoln() {
+  println "${C_BLUE}${1}${C_RESET}"
+}
+
+function command() {
+  CMD=$1
+
+  OUTPUT=$(echo $CMD | sed -E 's#.+uly#uly#')
+  OUTPUT=$(echo $OUTPUT | sed -E 's#--home.+/.urelayer##')
+  echo $OUTPUT
+  $($CMD)
+}
+
 source $(cd $(dirname ${BASH_SOURCE:-$0}); pwd)/vars
 
 ASSET_ID='coin#test'
@@ -22,72 +50,88 @@ BOB_PRIVATE_KEY=f66c1f19a52bf2955d00bf050793a80056ccfa6237b46f4d7d3a9e20af669c29
 CAROL_PRIVATE_KEY=2ec6a7b95aadbafadb7ee21f17e65dc8a3e223853af5c3d1974a7f32b6720295
 DAVE_PRIVATE_KEY=3a2e40aa0e008409282a58258dbca48857cb57bb170ff6bd5ef5de38a8f9ab0f
 
-set -x
+infoln 'Bank accounts are being registered on both chains ...'
+command "$RLY iroha tx set-bank $IBC_ZERO $BANK0_ACCOUNT_ID"
+command "$RLY iroha tx set-bank $IBC_ONE  $BANK1_ACCOUNT_ID"
 
-echo 'Bank accounts are being registered on both chains ...'
-$RLY iroha tx set-bank $IBC_ZERO $BANK0_ACCOUNT_ID
-$RLY iroha tx set-bank $IBC_ONE  $BANK1_ACCOUNT_ID
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Bank0 is minting tokens to Alice on chain0 ...'
-$RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
-$RLY iroha api subtract-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
-$RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT
-$RLY iroha api transfer-asset		$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ALICE_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT
+echo ''
+infoln 'Bank0 is minting tokens to Alice on chain0 ...'
+command "$RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT"
+command "$RLY iroha api subtract-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT"
+command "$RLY iroha api add-asset-quantity	$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $ASSET_ID $AMOUNT"
+command "$RLY iroha api transfer-asset		$IBC_ZERO $BANK0_ACCOUNT_ID $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ALICE_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT"
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Alice is executing sendTransfer on chain0 ...'
-$RLY iroha tx send-transfer $PATH_NAME $IBC_ZERO $ALICE_ACCOUNT_ID $CAROL_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT
+echo ''
+infoln 'Alice is executing sendTransfer on chain0 ...'
+command "$RLY iroha tx send-transfer $PATH_NAME $IBC_ZERO $ALICE_ACCOUNT_ID $CAROL_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT"
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Bank is executing burn on chain0 ...'
-$RLY iroha tx burn $IBC_ZERO $BANK0_ACCOUNT_ID
+echo ''
+infoln 'Bank is executing burn on chain0 ...'
+command "$RLY iroha tx burn $IBC_ZERO $BANK0_ACCOUNT_ID"
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Alice balance: $($RLY iroha api get-account-asset $IBC_ZERO $ALICE_PRIVATE_KEY $ALICE_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Relayers are relaying the packet ...'
-${RLY} tx relay $PATH_NAME
-${RLY} tx acks $PATH_NAME
+echo ''
+infoln 'Relayers are relaying the packet ...'
+command "${RLY} tx relay $PATH_NAME"
+command "${RLY} tx acks $PATH_NAME"
 
-echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
-echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+successln "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Bank is executing mint on chain1 ...'
-$RLY iroha tx mint $IBC_ONE $BANK1_ACCOUNT_ID
+echo ''
+infoln 'Bank is executing mint on chain1 ...'
+command "$RLY iroha tx mint $IBC_ONE $BANK1_ACCOUNT_ID"
 
-echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
-echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+successln "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Carol is executing sendTransfer on chain1 ...'
-$RLY iroha tx send-transfer $PATH_NAME $IBC_ONE $CAROL_ACCOUNT_ID $BOB_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT
+echo ''
+infoln 'Carol is executing sendTransfer on chain1 ...'
+command "$RLY iroha tx send-transfer $PATH_NAME $IBC_ONE $CAROL_ACCOUNT_ID $BOB_ACCOUNT_ID $ASSET_ID $DESCRIPTION $AMOUNT"
 
-echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
-echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+successln "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Bank is executing burn on chain1 ...'
-$RLY iroha tx burn $IBC_ONE $BANK1_ACCOUNT_ID
+echo ''
+infoln 'Bank is executing burn on chain1 ...'
+command "$RLY iroha tx burn $IBC_ONE $BANK1_ACCOUNT_ID"
 
-echo "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
-echo "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank1 balance: $($RLY iroha api get-account-asset $IBC_ONE $BANK1_PRIVATE_KEY $BANK1_ACCOUNT_ID $ASSET_ID)"
+successln "Carol balance: $($RLY iroha api get-account-asset $IBC_ONE $CAROL_PRIVATE_KEY $CAROL_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Relayers are relaying the packet ...'
-${RLY} tx relay $PATH_NAME
-${RLY} tx acks $PATH_NAME
+echo ''
+infoln 'Relayers are relaying the packet ...'
+command "${RLY} tx relay $PATH_NAME"
+command "${RLY} tx acks $PATH_NAME"
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Bob balance: $($RLY iroha api get-account-asset $IBC_ZERO $BOB_PRIVATE_KEY $BOB_ACCOUNT_ID $ASSET_ID)"
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Bob balance: $($RLY iroha api get-account-asset $IBC_ZERO $BOB_PRIVATE_KEY $BOB_ACCOUNT_ID $ASSET_ID)"
 
-echo 'Bank is executing mint on chain0 ...'
-$RLY iroha tx mint $IBC_ZERO $BANK0_ACCOUNT_ID
+echo ''
+infoln 'Bank is executing mint on chain0 ...'
+command "$RLY iroha tx mint $IBC_ZERO $BANK0_ACCOUNT_ID"
 
-echo "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
-echo "Bob balance: $($RLY iroha api get-account-asset $IBC_ZERO $BOB_PRIVATE_KEY $BOB_ACCOUNT_ID $ASSET_ID)"
-
-set +x
+echo ''
+successln "Bank0 balance: $($RLY iroha api get-account-asset $IBC_ZERO $BANK0_PRIVATE_KEY $BANK0_ACCOUNT_ID $ASSET_ID)"
+successln "Bob balance: $($RLY iroha api get-account-asset $IBC_ZERO $BOB_PRIVATE_KEY $BOB_ACCOUNT_ID $ASSET_ID)"
