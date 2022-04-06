@@ -1,7 +1,7 @@
 # iroha-ibc-modules
 
 ## What's this?
-This repository contains modules and an execution environment for sending and receiving packets with the IBC Protocol between two Iroha chains.
+This repository contains modules and an execution environment for sending and receiving packets with the IBC Protocol between two Hyperledger Iroha chains.
 
 ## Getting Started
 
@@ -24,10 +24,10 @@ $ popd
 ```
 
 ### deploy
-Create 2 chains of iroha and deploy the [yui-ibc-solidity](https://github.com/hyperledger-labs/yui-ibc-solidity) contracts to each chain.
+Create 2 chains of Iroha and deploy the [yui-ibc-solidity](https://github.com/hyperledger-labs/yui-ibc-solidity) contracts to each chain.
 ```shell
 $ make network
-$ make migrate-e2e
+$ make migrate
 ```
 
 ### Example and Testing
@@ -35,4 +35,4 @@ After launch the chains, execute the following command.
 ```shell
 $ make e2e-test
 ```
-Then, Packets are sent and received between the 2 chains by an ICS-20 module customized for iroha
+Then, Packets are sent and received between the 2 chains by an ICS-20 module customized for Iroha
